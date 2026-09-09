@@ -1,11 +1,11 @@
 name = "dsr-notes-sync"
 main = "dsr-notes-sync.js"
 compatibility_date = "2025-01-01"
+workers_dev = true
 
-# Create the namespace once with:  wrangler kv namespace create NOTES_KV
-# then paste its id below.
+# Created 2026-09-10 with:  npx wrangler kv namespace create NOTES_KV
 kv_namespaces = [
-  { binding = "NOTES_KV", id = "PASTE_KV_NAMESPACE_ID_HERE" }
+  { binding = "NOTES_KV", id = "4de9735191854f8f9fe98175150bdfc2" }
 ]
 
-# SYNC_TOKEN is a secret, not a var:  wrangler secret put SYNC_TOKEN
+# SYNC_TOKEN is a secret, not a var:  npx wrangler secret put SYNC_TOKEN
