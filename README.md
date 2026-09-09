@@ -16,7 +16,7 @@ A local-first, Google-Keep-style notepad for phone and PC. Single static page + 
 - **Pin** important notes — they show in a *Pinned* section above the rest (pin icon on each card, or the 📌 in the editor).
 - **Labels** — tag a note (editor ⋮ → Labels…), filter the board with the label bar at the top.
 - **Drag-reorder** checklist items by their ⠿ handle; or use "move ticked to the bottom".
-- Colour tags, search, archive, duplicate, share/copy as text.
+- **Colour** — 8 pale pastel washes (Rose / Peach / Butter / Sage / Mint / Fog / Lavender + Default); a washed note shows dark ink on the card *and* in the open editor. Plus search, archive, duplicate, share/copy as text.
 - **Undo delete** — a 6-second window to bring a deleted note back.
 - **Export / Import** a full `.json` backup (notes + audio + images embedded).
 - **Optional cross-device sync** — ⋮ → *Sync & settings…*; needs the Worker in [`worker/`](worker/). Off by default.
