@@ -16,8 +16,10 @@
     --bg:#0b0b0b; --bg2:#141414; --card:#171717; --line:#2a2a2a;
     --ink:#ece7d8; --dim:#8f8a7d; --gold:#d4af37; --gold2:#e8c86e;
     --danger:#c0563e;
-    --n-none:#171717; --n-red:#3d1f1f; --n-orange:#3f2f1c; --n-gold:#3d391c;
-    --n-green:#1c3a28; --n-teal:#1c3a37; --n-blue:#1c2740; --n-purple:#31203f;
+    /* pale note washes — dark ink sits on top (see .card:not(.c-none) / .editor.tint) */
+    --n-none:#171717; --n-red:#e8c4bd; --n-orange:#efd3b3; --n-gold:#ece0b0;
+    --n-green:#cfe0bf; --n-teal:#bfdedb; --n-blue:#c6d8ec; --n-purple:#d8cbe6;
+    --wash-ink:#2a2620; --wash-dim:#5f5a4e; --wash-done:#8a857a; --wash-line:rgba(0,0,0,.16);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;height:100%}
@@ -67,6 +69,17 @@
     padding:12px;margin:0 0 10px;position:relative;overflow:hidden;
   }
   .card.pinned{border-color:var(--gold)}
+  /* pale-washed cards: flip to dark ink */
+  .card:not(.c-none){border-color:var(--wash-line)}
+  .card:not(.c-none) h3{color:var(--wash-ink)}
+  .card:not(.c-none) .excerpt,
+  .card:not(.c-none) .meta{color:var(--wash-dim)}
+  .card:not(.c-none) .cklist li{color:var(--wash-ink)}
+  .card:not(.c-none) .cklist li.done{color:var(--wash-done)}
+  .card:not(.c-none) .cklist .bx{border-color:var(--wash-dim)}
+  .card:not(.c-none) .voicechip{color:#7a5f12}
+  .card:not(.c-none) .pin.on{color:#8a6d15}
+  .card:not(.c-none) .cdot{border-color:rgba(0,0,0,.28)}
   .card h3{margin:0 0 6px;font-size:15px;font-weight:700;color:var(--ink);word-break:break-word}
   .card .excerpt{color:var(--dim);white-space:pre-wrap;word-break:break-word;font-size:13.5px;max-height:11.5em;overflow:hidden}
   .card .cklist{list-style:none;margin:2px 0 0;padding:0;font-size:13.5px}
@@ -123,6 +136,31 @@
   .etitle::placeholder{color:var(--dim)}
   .etext{width:100%;min-height:50vh;border:none;background:none;outline:none;resize:none;color:var(--ink);font-size:16px;line-height:1.55}
   .etext::placeholder{color:var(--dim)}
+
+  /* open note carries its pale wash (Keep-style) */
+  .editor.tint{background:var(--note-wash)}
+  .editor.tint .etop{background:rgba(0,0,0,.05);border-bottom-color:rgba(0,0,0,.14)}
+  .editor.tint .iconbtn{color:#3f3a2c}
+  .editor.tint .iconbtn:active{background:rgba(0,0,0,.06)}
+  .editor.tint .etitle,
+  .editor.tint .etext,
+  .editor.tint .ckrow input.txt,
+  .editor.tint .ckadd input,
+  .editor.tint .rectime,
+  .editor.tint .transcript{color:var(--wash-ink)}
+  .editor.tint .etitle::placeholder,
+  .editor.tint .etext::placeholder,
+  .editor.tint .ckadd input::placeholder{color:#6b6555}
+  .editor.tint .ckrow{border-bottom-color:rgba(0,0,0,.16)}
+  .editor.tint .ckrow.done input.txt{color:var(--wash-done)}
+  .editor.tint .ckrow .bx{border-color:#7a7460}
+  .editor.tint .ckrow .drag,
+  .editor.tint .ckrow .rm,
+  .editor.tint .ckrow .mv,
+  .editor.tint .cktoggle,
+  .editor.tint .rechint{color:var(--wash-dim)}
+  .editor.tint .ckadd{color:#7a5f12}
+  .editor.tint .transcript{background:rgba(255,255,255,.4);border-color:rgba(0,0,0,.18)}
 
   /* checklist editor */
   .ckedit{list-style:none;margin:0;padding:0}
@@ -296,12 +334,13 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1c
+   DSR Notes — v1d
    Local-first Google-Keep-style notepad (text / list / voice / draw)
    Storage: IndexedDB (notes + blob store).
    v1b: labels + label filter, drag-reorder checklist items, undo-delete.
    v1c: optional cross-device sync (Cloudflare Worker + KV, see /worker);
         deletes now leave 30-day tombstones so they propagate.
+   v1d: pale note-colour washes (dark ink) on cards + the open editor.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -351,7 +390,8 @@ let pendingDel = null;          // { n, t } — note held for undo after delete
 
 /* ---------- helpers ---------- */
 const COLORS = ['none','red','orange','gold','green','teal','blue','purple'];
-const COLOR_HEX = {none:'#171717',red:'#3d1f1f',orange:'#3f2f1c',gold:'#3d391c',green:'#1c3a28',teal:'#1c3a37',blue:'#1c2740',purple:'#31203f'};
+const COLOR_HEX = {none:'#171717',red:'#e8c4bd',orange:'#efd3b3',gold:'#ece0b0',green:'#cfe0bf',teal:'#bfdedb',blue:'#c6d8ec',purple:'#d8cbe6'};
+const COLOR_NAME = {none:'Default',red:'Rose',orange:'Peach',gold:'Butter',green:'Sage',teal:'Mint',blue:'Fog',purple:'Lavender'};
 
 function toast(msg, actLabel, actFn){
   const t = $('#toast');
@@ -473,9 +513,7 @@ function cardHTML(n){
   if ((n.labels || []).length)
     inner += `<div class="labels">` + n.labels.map(l => `<span>${esc(l)}</span>`).join('') + `</div>`;
 
-  const dot = n.color && n.color!=='none'
-    ? `<span class="cdot" style="background:${COLOR_HEX[n.color]}"></span>` : '';
-  inner += `<div class="meta">${dot}<span>${fmtDate(n.updated||n.created)}</span></div>`;
+  inner += `<div class="meta"><span>${fmtDate(n.updated||n.created)}</span></div>`;
 
   return `<button class="card c-${n.color||'none'} ${n.pinned?'pinned':''}" data-id="${n.id}">
     <span class="pin ${n.pinned?'on':''}" title="Pin">📌</span>
@@ -527,6 +565,12 @@ function newNote(type){
            audioId:null, imageId:null, dur:0, transcript:'', thumb:'' };
 }
 
+function applyEditorTint(){
+  const on = cur && cur.color && cur.color !== 'none';
+  editor.classList.toggle('tint', !!on);
+  editor.style.setProperty('--note-wash', on ? COLOR_HEX[cur.color] : 'transparent');
+}
+
 async function openEditor(noteOrType){
   await flushPendingDelete();
   if (typeof noteOrType === 'string') { cur = newNote(noteOrType); curDirty = true; }
@@ -536,6 +580,7 @@ async function openEditor(noteOrType){
   $('#ePin').style.color = cur.pinned ? 'var(--gold2)' : '';
   $('#ePin').style.opacity = cur.pinned ? '1' : '.5';
   $('#eArchive').textContent = cur.archived ? '⬆' : '🗄';
+  applyEditorTint();
 
   editor.hidden = false;
   ebody.className = 'ebody';
@@ -564,6 +609,7 @@ async function closeEditor(){
 
   cur = null;
   editor.hidden = true;
+  editor.classList.remove('tint');
   renderBoard();
 }
 
@@ -866,7 +912,7 @@ async function deleteCurWithUndo(){
   clearTimeout(saveTimer); curDirty = false;
   n._deleted = true;
   if (NOTES.indexOf(n) < 0) NOTES.push(n);   // brand-new note never committed yet
-  cur = null; editor.hidden = true; renderBoard();
+  cur = null; editor.hidden = true; editor.classList.remove('tint'); renderBoard();
   const t = setTimeout(() => { pendingDel = null; deleteNote(n); }, 6000);
   pendingDel = { n, t };
   toast('Note deleted', 'Undo', () => {
@@ -937,10 +983,11 @@ async function shareCur(){
 function openColorSheet(){
   const row = $('#colorRow');
   row.innerHTML = COLORS.map(c =>
-    `<button data-c="${c}" class="${cur.color===c?'sel':''}" style="background:${COLOR_HEX[c]}"></button>`).join('');
+    `<button data-c="${c}" title="${COLOR_NAME[c]||c}" class="${cur.color===c?'sel':''}" style="background:${COLOR_HEX[c]}"></button>`).join('');
   row.querySelectorAll('button').forEach(b => b.onclick = () => {
     cur.color = b.dataset.c; scheduleSave();
-    $('#colorSheet').hidden = true; renderBoard();
+    applyEditorTint();
+    $('#colorSheet').hidden = true;
   });
   $('#colorSheet').hidden = false;
 }
@@ -997,7 +1044,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1c — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1d — local-first, optional sync') },
 ]);
 
 /* ---------- export / import ---------- */
