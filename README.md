@@ -14,8 +14,11 @@ A local-first, Google-Keep-style notepad for phone and PC. Single static page + 
 ## Features
 
 - **Pin** important notes — they show in a *Pinned* section above the rest (pin icon on each card, or the 📌 in the editor).
+- **Labels** — tag a note (editor ⋮ → Labels…), filter the board with the label bar at the top.
+- **Drag-reorder** checklist items by their ⠿ handle; or use "move ticked to the bottom".
 - Colour tags, search, archive, duplicate, share/copy as text.
-- **Export / Import** a full `.json` backup (notes + audio + images embedded) — the only way data moves between devices in v1a.
+- **Undo delete** — a 6-second window to bring a deleted note back.
+- **Export / Import** a full `.json` backup (notes + audio + images embedded).
 - Works offline once loaded (service worker caches the app shell).
 
 ## Storage

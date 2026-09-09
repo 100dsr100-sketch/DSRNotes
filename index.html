@@ -172,8 +172,26 @@
   .menu button:last-child{border-bottom:none}
   .menu button.del{color:var(--danger)}
 
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:#000;border:1px solid var(--gold);color:var(--gold2);padding:9px 16px;border-radius:20px;z-index:80;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+  /* labels */
+  .labelbar{display:flex;gap:7px;overflow-x:auto;padding:2px 4px 10px;scrollbar-width:none}
+  .labelbar::-webkit-scrollbar{display:none}
+  .labelbar button{flex:0 0 auto;border:1px solid var(--line);border-radius:16px;padding:4px 12px;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .labelbar button.sel{border-color:var(--gold);color:var(--gold2)}
+  .card .labels{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .card .labels span{font-size:10.5px;color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:1px 7px}
+  .lblrow{display:flex;flex-direction:column;max-height:44vh;overflow:auto}
+  .lblrow label{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:15px}
+  .lblrow input{accent-color:var(--gold);width:18px;height:18px;flex:0 0 auto}
+  .lblnew{display:flex;gap:8px;align-items:center;padding:14px 0 2px}
+  .lblnew input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;outline:none}
+
+  /* checklist drag */
+  .ckrow .drag{width:26px;height:32px;display:grid;place-items:center;color:var(--dim);cursor:grab;flex:0 0 auto;touch-action:none;font-size:15px}
+  .ckrow.dragging{background:var(--bg2);box-shadow:0 6px 16px rgba(0,0,0,.5);border-radius:8px;border-bottom-color:transparent}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:#000;border:1px solid var(--gold);color:var(--gold2);padding:9px 16px;border-radius:20px;z-index:80;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
   .toast.show{opacity:1}
+  .toast .act{margin-left:12px;color:var(--gold2);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.5px;pointer-events:auto}
 </style>
 </head>
 <body>
@@ -191,6 +209,7 @@
 </header>
 
 <main>
+  <div class="labelbar" id="labelBar" hidden></div>
   <section id="pinnedSec" hidden>
     <div class="seclabel">Pinned</div>
     <div class="grid" id="pinnedGrid"></div>
@@ -240,6 +259,17 @@
   <div class="panel"><div class="menu" id="menuList"></div></div>
 </div>
 
+<div class="sheet" id="labelSheet" hidden>
+  <div class="panel">
+    <h4>Labels</h4>
+    <div class="lblrow" id="lblRow"></div>
+    <div class="lblnew">
+      <input id="lblNew" placeholder="Create new label" autocomplete="off">
+      <button class="iconbtn" id="lblAdd" style="color:var(--gold2)">＋</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="importFile" accept="application/json" hidden>
 <input type="file" id="photoFile" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
@@ -247,9 +277,10 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1a
+   DSR Notes — v1b
    Local-first Google-Keep-style notepad (text / list / voice / draw)
    Storage: IndexedDB (notes + blob store). No network.
+   v1b: labels + label filter, drag-reorder checklist items, undo-delete.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -294,14 +325,19 @@ let query = '';
 let cur   = null;               // note currently open in the editor
 let curDirty = false;
 let saveTimer = null;
+let activeLabel = localStorage.getItem('dsr-notes-label') || '';
+let pendingDel = null;          // { n, t } — note held for undo after delete
 
 /* ---------- helpers ---------- */
 const COLORS = ['none','red','orange','gold','green','teal','blue','purple'];
 const COLOR_HEX = {none:'#171717',red:'#3d1f1f',orange:'#3f2f1c',gold:'#3d391c',green:'#1c3a28',teal:'#1c3a37',blue:'#1c2740',purple:'#31203f'};
 
-function toast(msg){
-  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 1800);
+function toast(msg, actLabel, actFn){
+  const t = $('#toast');
+  t.innerHTML = esc(msg) + (actLabel ? ` <button class="act">${esc(actLabel)}</button>` : '');
+  if (actLabel) t.querySelector('.act').onclick = () => { t.classList.remove('show'); actFn && actFn(); };
+  t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), actLabel ? 6000 : 1800);
 }
 function blobToDataURL(blob){
   return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(blob); });
@@ -331,13 +367,33 @@ async function commit(){
    BOARD RENDER
    ============================================================ */
 function noteMatches(n){
+  if (n._deleted) return false;
   if (view === 'archive' ? !n.archived : n.archived) return false;
+  if (activeLabel && !(n.labels || []).includes(activeLabel)) return false;
   if (!query) return true;
-  const hay = [n.title, n.body, ...(n.items||[]).map(i=>i.text), n.transcript].join(' ').toLowerCase();
+  const hay = [n.title, n.body, ...(n.items||[]).map(i=>i.text), n.transcript, ...(n.labels||[])].join(' ').toLowerCase();
   return hay.includes(query);
 }
 
+function renderLabelBar(){
+  const bar = $('#labelBar');
+  const set = new Set();
+  NOTES.forEach(n => { if (!n._deleted) (n.labels || []).forEach(l => set.add(l)); });
+  const labels = [...set].sort((a, b) => a.localeCompare(b));
+  if (activeLabel && !labels.includes(activeLabel)){ activeLabel = ''; localStorage.removeItem('dsr-notes-label'); }
+  if (!labels.length){ bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.hidden = false;
+  bar.innerHTML = `<button data-l="" class="${activeLabel ? '' : 'sel'}">All</button>` +
+    labels.map(l => `<button data-l="${esc(l)}" class="${activeLabel === l ? 'sel' : ''}"># ${esc(l)}</button>`).join('');
+  bar.querySelectorAll('button').forEach(b => b.onclick = () => {
+    activeLabel = b.dataset.l;
+    activeLabel ? localStorage.setItem('dsr-notes-label', activeLabel) : localStorage.removeItem('dsr-notes-label');
+    renderBoard();
+  });
+}
+
 function renderBoard(){
+  renderLabelBar();
   const list = NOTES.filter(noteMatches)
     .sort((a,b) => (b.updated||0) - (a.updated||0));
 
@@ -386,6 +442,9 @@ function cardHTML(n){
     if (n.transcript) inner += `<div class="excerpt" style="margin-top:6px">${esc(n.transcript).slice(0,300)}</div>`;
   }
 
+  if ((n.labels || []).length)
+    inner += `<div class="labels">` + n.labels.map(l => `<span>${esc(l)}</span>`).join('') + `</div>`;
+
   const dot = n.color && n.color!=='none'
     ? `<span class="cdot" style="background:${COLOR_HEX[n.color]}"></span>` : '';
   inner += `<div class="meta">${dot}<span>${fmtDate(n.updated||n.created)}</span></div>`;
@@ -416,6 +475,12 @@ async function deleteNote(n){
   for (const k of [n.audioId, n.imageId]) if (k) await DB.del('blobs', k);
   NOTES = NOTES.filter(x => x.id !== n.id);
 }
+async function flushPendingDelete(){
+  if (!pendingDel) return;
+  clearTimeout(pendingDel.t);
+  const n = pendingDel.n; pendingDel = null;
+  await deleteNote(n);
+}
 
 /* ============================================================
    EDITOR
@@ -424,14 +489,16 @@ const editor = $('#editor'), ebody = $('#ebody');
 let audioURL = null, mediaRec = null, recChunks = [], recTimer = null, recStart = 0, recognizer = null;
 
 function newNote(type){
-  return { id:uuid(), type, title:'', body:'', items:[], color:'none',
+  return { id:uuid(), type, title:'', body:'', items:[], labels:[], color:'none',
            pinned:false, archived:false, created:now(), updated:now(),
            audioId:null, imageId:null, dur:0, transcript:'', thumb:'' };
 }
 
 async function openEditor(noteOrType){
+  await flushPendingDelete();
   if (typeof noteOrType === 'string') { cur = newNote(noteOrType); curDirty = true; }
   else { cur = noteOrType; curDirty = false; }
+  cur.labels = cur.labels || [];
 
   $('#ePin').style.color = cur.pinned ? 'var(--gold2)' : '';
   $('#ePin').style.opacity = cur.pinned ? '1' : '.5';
@@ -502,33 +569,52 @@ function buildListEditor(){
   renderCkList();
 }
 function orderedItems(){
-  const arr = cur.items.map((it,i)=>({it,i}));
-  if (cur.sinkDone) arr.sort((a,b)=> (a.it.done - b.it.done) || (a.i - b.i));
+  cur.items.forEach(it => { if (!it.id) it.id = uuid(); });
+  const arr = cur.items.map((it,i) => ({it,i}));
+  if (cur.sinkDone) arr.sort((a,b) => (a.it.done - b.it.done) || (a.i - b.i));
   return arr;
 }
 function renderCkList(){
   const ul = $('#ckList'); if (!ul) return;
   ul.innerHTML = '';
-  orderedItems().forEach(({it,i}) => {
+  const canDrag = !cur.sinkDone;
+  orderedItems().forEach(({it}) => {
     const li = document.createElement('li');
     li.className = 'ckrow' + (it.done ? ' done' : '');
+    li.dataset.id = it.id;
     li.innerHTML = `
+      ${canDrag ? '<button class="drag" data-a="drag" title="Drag to reorder">⠿</button>' : ''}
       <button class="bx" data-a="tick">${it.done?'✓':''}</button>
       <input class="txt" value="${esc(it.text)}">
-      <button class="mv" data-a="up">▴</button>
-      <button class="mv" data-a="dn">▾</button>
       <button class="rm" data-a="rm">✕</button>`;
     li.querySelector('.txt').oninput = e => { it.text = e.target.value; scheduleSave(); };
-    li.querySelectorAll('button').forEach(b => b.onclick = () => {
-      const a = b.dataset.a;
-      if (a === 'tick') it.done = !it.done;
-      if (a === 'rm')   cur.items.splice(i,1);
-      if (a === 'up' && i>0)               cur.items.splice(i-1,0,cur.items.splice(i,1)[0]);
-      if (a === 'dn' && i<cur.items.length-1) cur.items.splice(i+1,0,cur.items.splice(i,1)[0]);
-      renderCkList(); scheduleSave();
-    });
+    li.querySelector('[data-a="tick"]').onclick = () => { it.done = !it.done; renderCkList(); scheduleSave(); };
+    li.querySelector('[data-a="rm"]').onclick = () => { cur.items = cur.items.filter(x => x !== it); renderCkList(); scheduleSave(); };
+    const dh = li.querySelector('[data-a="drag"]');
+    if (dh) dh.addEventListener('pointerdown', e => startRowDrag(e, li, ul));
     ul.appendChild(li);
   });
+}
+function startRowDrag(e, li, ul){
+  e.preventDefault();
+  li.classList.add('dragging');
+  try { li.setPointerCapture(e.pointerId); } catch(_){}
+  const move = ev => {
+    const rows = [...ul.querySelectorAll('.ckrow:not(.dragging)')];
+    let ref = null;
+    for (const r of rows){ const b = r.getBoundingClientRect(); if (ev.clientY < b.top + b.height/2){ ref = r; break; } }
+    if (ref !== li.nextElementSibling) ul.insertBefore(li, ref);
+  };
+  const up = () => {
+    li.classList.remove('dragging');
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    const order = [...ul.children].map(x => x.dataset.id);
+    cur.items.sort((a,b) => order.indexOf(a.id) - order.indexOf(b.id));
+    scheduleSave();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
 }
 
 /* ---- voice ---- */
@@ -735,10 +821,60 @@ $('#ePin').onclick = () => {
 $('#eArchive').onclick = async () => { await toggleArchive(cur); $('#eArchive').textContent = cur.archived ? '⬆' : '🗄'; };
 $('#eColor').onclick = () => openColorSheet();
 $('#eMenu').onclick = () => openMenuSheet([
+  { label:'Labels…', icon:'#', fn: openLabelSheet },
   { label:'Duplicate', icon:'⧉', fn: duplicateCur },
   { label:'Share text', icon:'↗', fn: shareCur },
-  { label:'Delete note', icon:'🗑', cls:'del', fn: async () => { await deleteNote(cur); cur=null; editor.hidden=true; renderBoard(); toast('Deleted'); } },
+  { label:'Delete note', icon:'🗑', cls:'del', fn: deleteCurWithUndo },
 ]);
+
+async function deleteCurWithUndo(){
+  await flushPendingDelete();
+  const n = cur;
+  clearTimeout(saveTimer); curDirty = false;
+  n._deleted = true;
+  if (NOTES.indexOf(n) < 0) NOTES.push(n);   // brand-new note never committed yet
+  cur = null; editor.hidden = true; renderBoard();
+  const t = setTimeout(() => { pendingDel = null; deleteNote(n); }, 6000);
+  pendingDel = { n, t };
+  toast('Note deleted', 'Undo', () => {
+    clearTimeout(t); pendingDel = null;
+    delete n._deleted;
+    DB.put('notes', n);
+    renderBoard();
+  });
+}
+
+/* ---------- labels sheet ---------- */
+function openLabelSheet(){
+  cur.labels = cur.labels || [];
+  const known = new Set();
+  NOTES.forEach(n => (n.labels || []).forEach(l => known.add(l)));
+  cur.labels.forEach(l => known.add(l));
+  const row = $('#lblRow');
+  const draw = () => {
+    const all = [...known].sort((a, b) => a.localeCompare(b));
+    row.innerHTML = all.length
+      ? all.map(l => `<label><input type="checkbox" ${cur.labels.includes(l) ? 'checked' : ''} data-l="${esc(l)}"><span># ${esc(l)}</span></label>`).join('')
+      : `<div style="color:var(--dim);padding:10px 4px">No labels yet — create one below</div>`;
+    row.querySelectorAll('input').forEach(cb => cb.onchange = () => {
+      const l = cb.dataset.l;
+      if (cb.checked){ if (!cur.labels.includes(l)) cur.labels.push(l); }
+      else cur.labels = cur.labels.filter(x => x !== l);
+      scheduleSave();
+    });
+  };
+  draw();
+  const nw = $('#lblNew'); nw.value = '';
+  const add = () => {
+    const v = nw.value.trim(); if (!v) return;
+    known.add(v);
+    if (!cur.labels.includes(v)) cur.labels.push(v);
+    nw.value = ''; draw(); scheduleSave();
+  };
+  $('#lblAdd').onclick = add;
+  nw.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); add(); } };
+  $('#labelSheet').hidden = false;
+}
 
 async function duplicateCur(){
   await commit();
@@ -826,7 +962,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1a — local, offline') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1b — local, offline') },
 ]);
 
 /* ---------- export / import ---------- */
