@@ -184,6 +184,9 @@
   .lblrow input{accent-color:var(--gold);width:18px;height:18px;flex:0 0 auto}
   .lblnew{display:flex;gap:8px;align-items:center;padding:14px 0 2px}
   .lblnew input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;outline:none}
+  .syncfield{margin:10px 0}
+  .syncfield label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px}
+  .syncfield input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;outline:none}
 
   /* checklist drag */
   .ckrow .drag{width:26px;height:32px;display:grid;place-items:center;color:var(--dim);cursor:grab;flex:0 0 auto;touch-action:none;font-size:15px}
@@ -270,6 +273,22 @@
   </div>
 </div>
 
+<div class="sheet" id="syncSheet" hidden>
+  <div class="panel">
+    <h4>Sync &amp; settings</h4>
+    <div class="syncfield"><label>Sync URL</label>
+      <input id="syncUrl" type="url" placeholder="https://dsr-notes-sync.you.workers.dev" autocomplete="off"></div>
+    <div class="syncfield"><label>Token</label>
+      <input id="syncToken" type="password" placeholder="shared secret" autocomplete="off"></div>
+    <label class="cktoggle" style="margin:14px 0 4px"><input type="checkbox" id="syncAuto"> Auto-sync (on launch, after edits, on reconnect)</label>
+    <div id="syncStatus" class="rechint" style="margin:10px 0 14px">Not configured</div>
+    <div style="display:flex;gap:10px">
+      <button id="syncSave" class="iconbtn" style="flex:1;border:1px solid var(--line);border-radius:10px;width:auto;color:var(--ink)">Save</button>
+      <button id="syncRun" class="iconbtn" style="flex:1;border:1px solid var(--gold);border-radius:10px;width:auto;color:var(--gold2)">Sync now</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="importFile" accept="application/json" hidden>
 <input type="file" id="photoFile" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
@@ -277,10 +296,12 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1b
+   DSR Notes — v1c
    Local-first Google-Keep-style notepad (text / list / voice / draw)
-   Storage: IndexedDB (notes + blob store). No network.
+   Storage: IndexedDB (notes + blob store).
    v1b: labels + label filter, drag-reorder checklist items, undo-delete.
+   v1c: optional cross-device sync (Cloudflare Worker + KV, see /worker);
+        deletes now leave 30-day tombstones so they propagate.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -352,7 +373,13 @@ function fmtDate(ts){
 }
 
 /* ---------- load / persist ---------- */
-async function loadNotes(){ NOTES = (await DB.all('notes')) || []; }
+const TOMB_TTL = 30 * 864e5;   // purge tombstones after 30 days
+async function loadNotes(){
+  NOTES = (await DB.all('notes')) || [];
+  const cut = now() - TOMB_TTL;
+  for (const n of NOTES.filter(x => x.deleted && (x.updated||0) < cut)) await DB.del('notes', n.id);
+  NOTES = NOTES.filter(x => !(x.deleted && (x.updated||0) < cut));
+}
 function scheduleSave(){ curDirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(commit, 600); }
 async function commit(){
   if (!cur || !curDirty) return;
@@ -361,13 +388,14 @@ async function commit(){
   await DB.put('notes', cur);
   const i = NOTES.findIndex(n => n.id === cur.id);
   if (i >= 0) NOTES[i] = cur; else NOTES.push(cur);
+  maybeAutoSync();
 }
 
 /* ============================================================
    BOARD RENDER
    ============================================================ */
 function noteMatches(n){
-  if (n._deleted) return false;
+  if (n._deleted || n.deleted) return false;
   if (view === 'archive' ? !n.archived : n.archived) return false;
   if (activeLabel && !(n.labels || []).includes(activeLabel)) return false;
   if (!query) return true;
@@ -378,7 +406,7 @@ function noteMatches(n){
 function renderLabelBar(){
   const bar = $('#labelBar');
   const set = new Set();
-  NOTES.forEach(n => { if (!n._deleted) (n.labels || []).forEach(l => set.add(l)); });
+  NOTES.forEach(n => { if (!n._deleted && !n.deleted) (n.labels || []).forEach(l => set.add(l)); });
   const labels = [...set].sort((a, b) => a.localeCompare(b));
   if (activeLabel && !labels.includes(activeLabel)){ activeLabel = ''; localStorage.removeItem('dsr-notes-label'); }
   if (!labels.length){ bar.hidden = true; bar.innerHTML = ''; return; }
@@ -471,9 +499,14 @@ async function toggleArchive(n){
   toast(n.archived ? 'Archived' : 'Restored');
 }
 async function deleteNote(n){
-  await DB.del('notes', n.id);
+  // leave a tombstone so the delete can propagate through sync, then expire
   for (const k of [n.audioId, n.imageId]) if (k) await DB.del('blobs', k);
-  NOTES = NOTES.filter(x => x.id !== n.id);
+  const tomb = { id: n.id, type: n.type, deleted: true, updated: now(),
+                 audioId: n.audioId || null, imageId: n.imageId || null };
+  await DB.put('notes', tomb);
+  const i = NOTES.findIndex(x => x.id === n.id);
+  if (i >= 0) NOTES[i] = tomb; else NOTES.push(tomb);
+  maybeAutoSync();
 }
 async function flushPendingDelete(){
   if (!pendingDel) return;
@@ -959,15 +992,17 @@ $('#archiveBtn').onclick = () => {
 };
 
 $('#moreBtn').onclick = () => openMenuSheet([
+  ...(SYNC.cfg.url ? [{ label:'Sync now', icon:'☁', fn: () => syncNow() }] : []),
+  { label:'Sync & settings…', icon:'⚙', fn: openSyncSheet },
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1b — local, offline') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1c — local-first, optional sync') },
 ]);
 
 /* ---------- export / import ---------- */
 async function exportAll(){
-  const notes = await DB.all('notes');
+  const notes = (await DB.all('notes')).filter(n => !n.deleted);
   const blobKeys = new Set();
   notes.forEach(n => { if (n.audioId) blobKeys.add(n.audioId); if (n.imageId) blobKeys.add(n.imageId); });
   const blobs = {};
@@ -1000,6 +1035,120 @@ $('#importFile').addEventListener('change', async e => {
 });
 
 /* ============================================================
+   SYNC  (optional — Cloudflare Worker + KV, see /worker)
+   ============================================================ */
+const SYNC = {
+  get cfg(){ try { return JSON.parse(localStorage.getItem('dsr-notes-sync') || '{}'); } catch(e){ return {}; } },
+  set cfg(v){ localStorage.setItem('dsr-notes-sync', JSON.stringify(v)); },
+  get last(){ return +localStorage.getItem('dsr-notes-synced') || 0; },
+  set last(v){ localStorage.setItem('dsr-notes-synced', String(v)); },
+  busy: false, autoT: null,
+};
+
+async function sapi(path, opt = {}){
+  const { url, token } = SYNC.cfg;
+  const r = await fetch(url.replace(/\/+$/, '') + path, {
+    ...opt, headers: { Authorization: 'Bearer ' + token, ...(opt.headers || {}) },
+  });
+  if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+  return r;
+}
+
+function maybeAutoSync(){
+  if (!SYNC.cfg.auto || !SYNC.cfg.url || !SYNC.cfg.token) return;
+  clearTimeout(SYNC.autoT);
+  SYNC.autoT = setTimeout(() => syncNow(true), 4000);
+}
+
+async function syncNow(quiet){
+  const { url, token } = SYNC.cfg;
+  if (!url || !token){ if (!quiet) toast('Set up sync in Settings first'); return; }
+  if (SYNC.busy) return;
+  SYNC.busy = true;
+  const started = now();
+  let pulled = 0, pushed = 0;
+  try {
+    await commit();                                   // flush the open editor first
+    const idx = (await (await sapi('/notes')).json()).notes || [];
+    const localById = new Map(NOTES.map(n => [n.id, n]));
+    const serverById = new Map(idx.map(s => [s.id, s]));
+
+    /* ---- pull: server has something newer (or we lack it) ---- */
+    for (const s of idx){
+      const l = localById.get(s.id);
+      if (l && (l.updated || 0) >= s.updated) continue;
+      const full = await (await sapi('/note/' + s.id)).json();
+      for (const k of [full.audioId, full.imageId]){
+        if (k && !(await DB.get('blobs', k))){
+          try { await DB.put('blobs', { key: k, blob: await (await sapi('/blob/' + k)).blob() }); } catch(e){}
+        }
+      }
+      if (full.deleted) for (const k of [full.audioId, full.imageId]) if (k) await DB.del('blobs', k);
+      await DB.put('notes', full);
+      const i = NOTES.findIndex(n => n.id === full.id);
+      if (i >= 0) NOTES[i] = full; else NOTES.push(full);
+      pulled++;
+    }
+
+    /* ---- push: we have something the server lacks or is behind on ---- */
+    for (const n of NOTES){
+      const s = serverById.get(n.id);
+      if (s && (s.updated || 0) >= (n.updated || 0)) continue;
+      for (const k of [n.audioId, n.imageId]){
+        if (!k) continue;
+        const rec = await DB.get('blobs', k);
+        if (rec) try { await sapi('/blob/' + k, { method:'PUT', body: rec.blob,
+          headers: { 'Content-Type': rec.blob.type || 'application/octet-stream' } }); } catch(e){}
+      }
+      await sapi('/note/' + n.id, { method:'PUT',
+        headers: { 'Content-Type':'application/json' }, body: JSON.stringify(n) });
+      pushed++;
+    }
+
+    SYNC.last = started;
+    if (pulled) { await loadNotes(); }
+    renderBoard();
+    updateSyncStatus();
+    if (!quiet) toast(`Synced — ${pulled} in, ${pushed} out`);
+  } catch(e){
+    if (!quiet) toast('Sync failed: ' + e.message);
+  } finally {
+    SYNC.busy = false;
+  }
+}
+
+function updateSyncStatus(){
+  const el = $('#syncStatus'); if (!el) return;
+  if (!SYNC.cfg.url){ el.textContent = 'Not configured'; return; }
+  el.textContent = SYNC.last ? 'Last synced ' + new Date(SYNC.last).toLocaleString() : 'Configured — not synced yet';
+}
+
+function openSyncSheet(){
+  const c = SYNC.cfg;
+  $('#syncUrl').value = c.url || '';
+  $('#syncToken').value = c.token || '';
+  $('#syncAuto').checked = !!c.auto;
+  updateSyncStatus();
+  $('#syncSave').onclick = () => {
+    SYNC.cfg = {
+      url: $('#syncUrl').value.trim(),
+      token: $('#syncToken').value.trim(),
+      auto: $('#syncAuto').checked,
+    };
+    $('#syncSheet').hidden = true;
+    toast('Sync settings saved');
+  };
+  $('#syncRun').onclick = () => {
+    SYNC.cfg = { url: $('#syncUrl').value.trim(), token: $('#syncToken').value.trim(), auto: $('#syncAuto').checked };
+    $('#syncSheet').hidden = true;
+    syncNow();
+  };
+  $('#syncSheet').hidden = false;
+}
+
+window.addEventListener('online', () => maybeAutoSync());
+
+/* ============================================================
    BOOT
    ============================================================ */
 (async function init(){
@@ -1008,13 +1157,14 @@ $('#importFile').addEventListener('change', async e => {
   renderBoard();
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  if (SYNC.cfg.auto && SYNC.cfg.url && SYNC.cfg.token) syncNow(true);
 })();
 
 // back button / gesture closes the editor first
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape'){
-    if (!$('#colorSheet').hidden) $('#colorSheet').hidden = true;
-    else if (!$('#menuSheet').hidden) $('#menuSheet').hidden = true;
+    const openSheet = $$('.sheet').find(s => !s.hidden);
+    if (openSheet) openSheet.hidden = true;
     else if (!editor.hidden) closeEditor();
   }
 });

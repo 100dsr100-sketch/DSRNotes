@@ -1,6 +1,6 @@
 # DSR Notes
 
-A local-first, Google-Keep-style notepad for phone and PC. Single static page + PWA shell — no backend, no account, nothing leaves the device.
+A local-first, Google-Keep-style notepad for phone and PC. Single static page + PWA shell — no backend, no account. Nothing leaves the device unless you turn on optional sync.
 
 ## Note types
 
@@ -19,6 +19,7 @@ A local-first, Google-Keep-style notepad for phone and PC. Single static page + 
 - Colour tags, search, archive, duplicate, share/copy as text.
 - **Undo delete** — a 6-second window to bring a deleted note back.
 - **Export / Import** a full `.json` backup (notes + audio + images embedded).
+- **Optional cross-device sync** — ⋮ → *Sync & settings…*; needs the Worker in [`worker/`](worker/). Off by default.
 - Works offline once loaded (service worker caches the app shell).
 
 ## Storage
@@ -32,12 +33,17 @@ The app itself is < 1 MB, so GitHub Pages' 1 GB site limit is irrelevant here.
 
 ## Hosting
 
-Static files — drop `index.html`, `manifest.json`, `service-worker.js`, `icon.svg` at the repo root and enable Pages.
+Static files — drop `index.html`, `manifest.json`, `service-worker.js`, `icon.svg` at the repo root and enable Pages. (`worker/` is not part of the site — it deploys separately with `wrangler`.)
 
 GitHub Pages is always public on free accounts. For a private deployment, host the same files on Cloudflare Pages behind Cloudflare Access, or add a client-side password gate.
 
+## Sync (optional)
+
+`worker/` holds a small Cloudflare Worker (KV-only, no R2 → no payment method needed) that syncs notes + blobs between devices, last-write-wins per note, deletes as 30-day tombstones. See [`worker/README.md`](worker/README.md) for the `wrangler` steps, then enter the URL + token in the app under ⋮ → *Sync & settings…* on each device.
+
 ## Roadmap
 
-- Nicer drag-to-reorder for checklists
-- Label / folder filtering
-- Optional cloud sync (private Cloudflare Worker + KV/R2)
+- FLIP animation on checklist drag
+- Rich text / markdown in text notes
+- Per-note reminders
+- Trash view (currently tombstones are silent for 30 days)

@@ -1,5 +1,5 @@
 /* DSR Notes — offline app-shell cache */
-const CACHE = 'dsr-notes-v1b';
+const CACHE = 'dsr-notes-v1c';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
