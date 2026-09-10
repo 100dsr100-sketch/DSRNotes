@@ -334,13 +334,14 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1d
+   DSR Notes — v1e
    Local-first Google-Keep-style notepad (text / list / voice / draw)
    Storage: IndexedDB (notes + blob store).
    v1b: labels + label filter, drag-reorder checklist items, undo-delete.
    v1c: optional cross-device sync (Cloudflare Worker + KV, see /worker);
         deletes now leave 30-day tombstones so they propagate.
    v1d: pale note-colour washes (dark ink) on cards + the open editor.
+   v1e: board render self-heals a stray null in NOTES (defensive hardening).
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -426,7 +427,7 @@ async function commit(){
   curDirty = false;
   cur.updated = now();
   await DB.put('notes', cur);
-  const i = NOTES.findIndex(n => n.id === cur.id);
+  const i = NOTES.findIndex(n => n && n.id === cur.id);
   if (i >= 0) NOTES[i] = cur; else NOTES.push(cur);
   maybeAutoSync();
 }
@@ -435,7 +436,7 @@ async function commit(){
    BOARD RENDER
    ============================================================ */
 function noteMatches(n){
-  if (n._deleted || n.deleted) return false;
+  if (!n || n._deleted || n.deleted) return false;
   if (view === 'archive' ? !n.archived : n.archived) return false;
   if (activeLabel && !(n.labels || []).includes(activeLabel)) return false;
   if (!query) return true;
@@ -446,7 +447,7 @@ function noteMatches(n){
 function renderLabelBar(){
   const bar = $('#labelBar');
   const set = new Set();
-  NOTES.forEach(n => { if (!n._deleted && !n.deleted) (n.labels || []).forEach(l => set.add(l)); });
+  NOTES.forEach(n => { if (n && !n._deleted && !n.deleted) (n.labels || []).forEach(l => set.add(l)); });
   const labels = [...set].sort((a, b) => a.localeCompare(b));
   if (activeLabel && !labels.includes(activeLabel)){ activeLabel = ''; localStorage.removeItem('dsr-notes-label'); }
   if (!labels.length){ bar.hidden = true; bar.innerHTML = ''; return; }
@@ -461,6 +462,7 @@ function renderLabelBar(){
 }
 
 function renderBoard(){
+  if (NOTES.some(n => !n)) NOTES = NOTES.filter(Boolean);   // self-heal a stray null/undefined
   renderLabelBar();
   const list = NOTES.filter(noteMatches)
     .sort((a,b) => (b.updated||0) - (a.updated||0));
@@ -1033,7 +1035,6 @@ $('#archiveBtn').onclick = () => {
   view = view === 'archive' ? 'board' : 'archive';
   localStorage.setItem('dsr-notes-view', view);
   $('#archiveBtn').style.color = view === 'archive' ? 'var(--gold2)' : '';
-  document.querySelector('.brand').lastChild;
   renderBoard();
   toast(view === 'archive' ? 'Archive' : 'Notes');
 };
@@ -1044,7 +1045,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1d — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1e — local-first, optional sync') },
 ]);
 
 /* ---------- export / import ---------- */
