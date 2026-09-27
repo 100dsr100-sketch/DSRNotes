@@ -1,5 +1,6 @@
 /* DSR Notes — offline app-shell cache */
 const CACHE = 'dsr-notes-v1e';
+const OWN = 'dsr-notes-';   // only ever delete THIS app's old caches – every DSR app shares the github.io origin's cache storage
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -8,7 +9,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE && k.indexOf(OWN) === 0).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
