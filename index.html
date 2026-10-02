@@ -230,6 +230,25 @@
   .ckrow .drag{width:26px;height:32px;display:grid;place-items:center;color:var(--dim);cursor:grab;flex:0 0 auto;touch-action:none;font-size:15px}
   .ckrow.dragging{background:var(--bg2);box-shadow:0 6px 16px rgba(0,0,0,.5);border-radius:8px;border-bottom-color:transparent}
 
+  /* v1f: fixed X-by-Y board (default 3 x 5 per screen) - every card the same size, its preview scaled
+     down to fit; voice memos keep normal-size text */
+  .grid.fixed{columns:auto;display:grid;grid-template-columns:repeat(var(--gx,3),minmax(0,1fr));gap:var(--gg,6px)}
+  .grid.fixed .card{height:var(--cellh,140px);margin:0;padding:0;border-radius:10px}
+  .grid.fixed .card .cin{width:var(--natw,200px);height:calc(var(--cellh,140px) / var(--sc,1));transform:scale(var(--sc,1));transform-origin:0 0;padding:12px;overflow:hidden}
+  .grid.fixed .card.voice .cin{width:auto;height:100%;transform:none;padding:8px}
+  .grid.fixed .card .excerpt{max-height:none}
+  .grid.fixed .card .pin{top:2px;right:2px;width:24px;height:24px;font-size:12px;z-index:2}
+  .grid.fixed .card.voice .voicechip{font-size:14px;padding-right:18px}
+  .grid.fixed .card.voice .excerpt{font-size:12.5px}
+  .txtbtn{height:32px;padding:0 12px;border:1px solid var(--gold);border-radius:16px;color:var(--gold2);font-size:13px;font-weight:600;flex:0 0 auto;white-space:nowrap}
+  .txtbtn:active{background:var(--bg2)}
+  .txtbtn.on{background:var(--gold);color:#1a1400}
+  .editor.tint .txtbtn{color:#3f3a2c;border-color:#6b6555}
+  .iconbtn.live{color:#fff;background:var(--danger);animation:pulse 1.2s infinite}
+  .brand .ver{font-size:11px;color:var(--gold);font-weight:700}
+  .gridrow{display:flex;align-items:center;gap:10px;margin:10px 0}
+  .gridrow label{flex:1;font-size:15px}
+  .gridrow input{width:70px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px;outline:none;text-align:center;font-size:16px}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:#000;border:1px solid var(--gold);color:var(--gold2);padding:9px 16px;border-radius:20px;z-index:80;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
   .toast.show{opacity:1}
   .toast .act{margin-left:12px;color:var(--gold2);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.5px;pointer-events:auto}
@@ -240,12 +259,13 @@
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
+    <span class="ver">1f</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
     <input id="q" type="search" placeholder="Search notes" autocomplete="off">
   </div>
-  <button class="iconbtn" id="archiveBtn" title="Archive">🗄</button>
+  <button class="txtbtn" id="archiveBtn" title="Show the archived notes">Archive</button>
   <button class="iconbtn" id="moreBtn" title="More">⋮</button>
 </header>
 
@@ -280,9 +300,11 @@
   <div class="etop">
     <button class="iconbtn" id="eBack" title="Back">‹</button>
     <div class="grow"></div>
+    <button class="iconbtn" id="eMic" title="Voice typing - speak to add text" hidden>🎤</button>
+    <button class="iconbtn" id="eSpeak" title="Read aloud" hidden>🔊</button>
     <button class="iconbtn" id="ePin" title="Pin">📌</button>
     <button class="iconbtn" id="eColor" title="Colour">🎨</button>
-    <button class="iconbtn" id="eArchive" title="Archive">🗄</button>
+    <button class="txtbtn" id="eArchive" title="Archive this note">Archive</button>
     <button class="iconbtn" id="eMenu" title="More">⋮</button>
   </div>
   <div class="ebody" id="ebody"><!-- filled per type --></div>
@@ -327,6 +349,20 @@
   </div>
 </div>
 
+<div class="sheet" id="gridSheet" hidden>
+  <div class="panel">
+    <h4>Board grid</h4>
+    <div class="rechint" style="margin-bottom:6px">How many notes fit on one screen - every preview is scaled to the same size (voice memos stay normal size).</div>
+    <div class="gridrow"><label for="gridX">Across (columns)</label><input id="gridX" type="number" min="1" max="8" inputmode="numeric"></div>
+    <div class="gridrow"><label for="gridY">Down (rows per screen)</label><input id="gridY" type="number" min="1" max="12" inputmode="numeric"></div>
+    <label class="cktoggle" style="margin:8px 0 14px"><input type="checkbox" id="gridFree"> Free layout instead (cards their natural height)</label>
+    <div style="display:flex;gap:10px">
+      <button id="gridReset" class="iconbtn" style="flex:1;border:1px solid var(--line);border-radius:10px;width:auto;color:var(--ink)">3 × 5</button>
+      <button id="gridSave" class="iconbtn" style="flex:1;border:1px solid var(--gold);border-radius:10px;width:auto;color:var(--gold2)">Apply</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="importFile" accept="application/json" hidden>
 <input type="file" id="photoFile" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
@@ -334,7 +370,7 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1e
+   DSR Notes — v1f
    Local-first Google-Keep-style notepad (text / list / voice / draw)
    Storage: IndexedDB (notes + blob store).
    v1b: labels + label filter, drag-reorder checklist items, undo-delete.
@@ -342,6 +378,8 @@
         deletes now leave 30-day tombstones so they propagate.
    v1d: pale note-colour washes (dark ink) on cards + the open editor.
    v1e: board render self-heals a stray null in NOTES (defensive hardening).
+   v1f: X-by-Y board grid (default 3 x 5, scaled previews), "Archive" text buttons,
+        voice typing + read aloud in text notes and lists.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -461,6 +499,44 @@ function renderLabelBar(){
   });
 }
 
+/* ---- v1f: X-by-Y board ---- */
+const GRID_NAT_W = 200;   // a card's preview is laid out at this width, then scaled to its cell
+function gridCfg(){
+  try { const g = JSON.parse(localStorage.getItem('dsr-notes-grid')); if (g && g.x >= 1 && g.y >= 1) return g; } catch(e){}
+  return { x:3, y:5, free:false };
+}
+function applyGrid(){
+  const g = gridCfg(), main = document.querySelector('main');
+  $$('.grid').forEach(el => el.classList.toggle('fixed', !g.free));
+  if (g.free) return;
+  const gap = 6, cs = getComputedStyle(main);
+  const w = main.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const cellW = (w - gap * (g.x - 1)) / g.x;
+  // the rows share the screen below the header (less a section title and the label bar)
+  const avail = window.innerHeight - document.querySelector('header').offsetHeight - 34 - ($('#labelBar').hidden ? 0 : 40);
+  const cellH = Math.max(48, (avail - gap * (g.y - 1)) / g.y);
+  const sc = Math.min(1.25, cellW / GRID_NAT_W);
+  main.style.setProperty('--gx', g.x);
+  main.style.setProperty('--gg', gap + 'px');
+  main.style.setProperty('--cellh', cellH.toFixed(1) + 'px');
+  main.style.setProperty('--sc', sc.toFixed(4));
+  main.style.setProperty('--natw', GRID_NAT_W + 'px');
+}
+window.addEventListener('resize', () => applyGrid());
+function openGridSheet(){
+  const g = gridCfg();
+  $('#gridX').value = g.x; $('#gridY').value = g.y; $('#gridFree').checked = !!g.free;
+  const save = (x, y, free) => {
+    x = Math.min(8, Math.max(1, Math.round(+x) || 3)); y = Math.min(12, Math.max(1, Math.round(+y) || 5));
+    localStorage.setItem('dsr-notes-grid', JSON.stringify({ x, y, free }));
+    $('#gridSheet').hidden = true; renderBoard();
+    toast(free ? 'Free layout' : `Grid ${x} × ${y}`);
+  };
+  $('#gridSave').onclick = () => save($('#gridX').value, $('#gridY').value, $('#gridFree').checked);
+  $('#gridReset').onclick = () => save(3, 5, false);
+  $('#gridSheet').hidden = false;
+}
+
 function renderBoard(){
   if (NOTES.some(n => !n)) NOTES = NOTES.filter(Boolean);   // self-heal a stray null/undefined
   renderLabelBar();
@@ -475,6 +551,7 @@ function renderBoard(){
   $('#pinnedGrid').innerHTML = pinned.map(cardHTML).join('');
   $('#othersGrid').innerHTML = others.map(cardHTML).join('');
 
+  applyGrid();
   const none = list.length === 0;
   $('#empty').hidden = !none;
   $('#emptyMsg').textContent = view === 'archive'
@@ -517,9 +594,9 @@ function cardHTML(n){
 
   inner += `<div class="meta"><span>${fmtDate(n.updated||n.created)}</span></div>`;
 
-  return `<button class="card c-${n.color||'none'} ${n.pinned?'pinned':''}" data-id="${n.id}">
+  return `<button class="card c-${n.color||'none'} ${n.pinned?'pinned':''} ${n.type==='voice'?'voice':''}" data-id="${n.id}">
     <span class="pin ${n.pinned?'on':''}" title="Pin">📌</span>
-    ${inner}
+    <div class="cin">${inner}</div>
   </button>`;
 }
 
@@ -581,7 +658,8 @@ async function openEditor(noteOrType){
 
   $('#ePin').style.color = cur.pinned ? 'var(--gold2)' : '';
   $('#ePin').style.opacity = cur.pinned ? '1' : '.5';
-  $('#eArchive').textContent = cur.archived ? '⬆' : '🗄';
+  $('#eArchive').textContent = cur.archived ? 'Unarchive' : 'Archive';
+  $('#eMic').hidden = $('#eSpeak').hidden = !(cur.type === 'text' || cur.type === 'list');
   applyEditorTint();
 
   editor.hidden = false;
@@ -594,7 +672,80 @@ async function openEditor(noteOrType){
   if (cur.type === 'draw')  await buildDrawEditor();
 }
 
+/* ---- v1f: voice typing (text notes + lists) ----
+   One phrase at a time (continuous=false, restarted while on): Android Chrome's continuous mode repeats
+   earlier words in later results. Text note: the phrase goes in at the cursor. List: each phrase is a new item. */
+let dict = null;   // { sr, on }
+function stopDictation(){
+  if (!dict) return;
+  dict.on = false; try { dict.sr.abort(); } catch(e){}
+  dict = null; $('#eMic').classList.remove('live');
+}
+function startDictation(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){ toast("Voice typing isn't supported in this browser"); return; }
+  stopSpeaking();
+  const sr = new SR(); sr.continuous = false; sr.interimResults = false; sr.maxAlternatives = 1;
+  sr.lang = navigator.language || 'en-GB';
+  dict = { sr, on: true };
+  sr.onresult = e => {
+    const t = [...e.results].filter(r => r.isFinal).map(r => r[0].transcript).join(' ').trim();
+    if (t && cur) addDictated(t);
+  };
+  sr.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ toast('Microphone blocked'); stopDictation(); }
+  };
+  sr.onend = () => { if (dict && dict.sr === sr && dict.on){ try { sr.start(); } catch(e){ stopDictation(); } } };
+  try { sr.start(); } catch(e){ stopDictation(); return; }
+  $('#eMic').classList.add('live');
+  toast(cur && cur.type === 'list' ? 'Listening — each phrase becomes a list item' : 'Listening — speak, tap 🎤 to stop');
+}
+function addDictated(t){
+  if (cur.type === 'list'){
+    const nw = $('#ckNew'); if (nw && nw.value.trim()){ cur.items.push({ text: nw.value.trim(), done:false }); nw.value = ''; }
+    cur.items.push({ text: t.charAt(0).toUpperCase() + t.slice(1), done:false });
+    renderCkList(); scheduleSave();
+    return;
+  }
+  const ta = $('#fBody'); if (!ta) return;
+  const a = ta.selectionStart ?? ta.value.length, b = ta.selectionEnd ?? a;
+  const before = ta.value.slice(0, a), after = ta.value.slice(b);
+  const sentenceStart = !before.trim() || /[.!?\n]\s*$/.test(before);
+  let ins = sentenceStart ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+  if (before && !/\s$/.test(before)) ins = ' ' + ins;
+  if (after && !/^\s/.test(after)) ins += ' ';
+  ta.value = before + ins + after;
+  const pos = (before + ins).length; ta.selectionStart = ta.selectionEnd = pos;
+  cur.body = ta.value; autoGrow(ta); scheduleSave();
+}
+$('#eMic').onclick = () => dict ? stopDictation() : startDictation();
+
+/* ---- v1f: read aloud (text notes + lists) ---- */
+function stopSpeaking(){ try { speechSynthesis.cancel(); } catch(e){} $('#eSpeak').classList.remove('live'); }
+function speakCur(){
+  if (!('speechSynthesis' in window)){ toast("Read aloud isn't supported in this browser"); return; }
+  if (speechSynthesis.speaking || $('#eSpeak').classList.contains('live')){ stopSpeaking(); return; }
+  stopDictation();
+  const parts = [];
+  if (cur.title) parts.push(cur.title + '.');
+  if (cur.type === 'list') (cur.items || []).forEach(it => { if (it.text) parts.push(it.text + (it.done ? ', ticked.' : '.')); });
+  else if (cur.body) parts.push(cur.body);
+  if (!parts.length){ toast('Nothing to read'); return; }
+  // long strings cut out part-way in some browsers - read it a sentence at a time
+  const chunks = (parts.join('\n').match(/[^.!?\n]+[.!?]*/g) || []).map(x => x.trim()).filter(Boolean);
+  const lang = navigator.language || 'en-GB', vs = speechSynthesis.getVoices();
+  const voice = vs.find(v => v.lang === lang) || vs.find(v => v.lang.slice(0, 2) === lang.slice(0, 2));
+  chunks.forEach((c, i) => {
+    const u = new SpeechSynthesisUtterance(c); u.lang = lang; if (voice) u.voice = voice;
+    if (i === chunks.length - 1) u.onend = u.onerror = () => $('#eSpeak').classList.remove('live');
+    speechSynthesis.speak(u);
+  });
+  $('#eSpeak').classList.add('live');
+}
+$('#eSpeak').onclick = () => speakCur();
+
 async function closeEditor(){
+  stopDictation(); stopSpeaking();
   // stop any recording / recognition
   if (mediaRec && mediaRec.state === 'recording') await stopRecording();
   if (recognizer) { try{ recognizer.stop(); }catch(e){} recognizer = null; }
@@ -899,7 +1050,7 @@ $('#ePin').onclick = () => {
   $('#ePin').style.opacity = cur.pinned ? '1' : '.5';
   toast(cur.pinned ? 'Pinned' : 'Unpinned');
 };
-$('#eArchive').onclick = async () => { await toggleArchive(cur); $('#eArchive').textContent = cur.archived ? '⬆' : '🗄'; };
+$('#eArchive').onclick = async () => { await toggleArchive(cur); $('#eArchive').textContent = cur.archived ? 'Unarchive' : 'Archive'; };
 $('#eColor').onclick = () => openColorSheet();
 $('#eMenu').onclick = () => openMenuSheet([
   { label:'Labels…', icon:'#', fn: openLabelSheet },
@@ -1031,21 +1182,28 @@ document.addEventListener('click', e => {
    ============================================================ */
 $('#q').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); renderBoard(); });
 
+function archiveBtnLabel(){
+  const b = $('#archiveBtn');
+  b.textContent = view === 'archive' ? '‹ Notes' : 'Archive';
+  b.title = view === 'archive' ? 'Back to your notes' : 'Show the archived notes';
+  b.classList.toggle('on', view === 'archive');
+}
 $('#archiveBtn').onclick = () => {
   view = view === 'archive' ? 'board' : 'archive';
   localStorage.setItem('dsr-notes-view', view);
-  $('#archiveBtn').style.color = view === 'archive' ? 'var(--gold2)' : '';
+  archiveBtnLabel();
   renderBoard();
   toast(view === 'archive' ? 'Archive' : 'Notes');
 };
 
 $('#moreBtn').onclick = () => openMenuSheet([
   ...(SYNC.cfg.url ? [{ label:'Sync now', icon:'☁', fn: () => syncNow() }] : []),
+  { label:`Board grid (${gridCfg().free ? 'free' : gridCfg().x + ' × ' + gridCfg().y})…`, icon:'▦', fn: openGridSheet },
   { label:'Sync & settings…', icon:'⚙', fn: openSyncSheet },
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1e — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1f — local-first, optional sync') },
 ]);
 
 /* ---------- export / import ---------- */
@@ -1201,7 +1359,7 @@ window.addEventListener('online', () => maybeAutoSync());
    ============================================================ */
 (async function init(){
   await loadNotes();
-  if (view === 'archive') $('#archiveBtn').style.color = 'var(--gold2)';
+  archiveBtnLabel();
   renderBoard();
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
