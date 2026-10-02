@@ -259,12 +259,13 @@
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">1f</span>
+    <span class="ver">1g</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
     <input id="q" type="search" placeholder="Search notes" autocomplete="off">
   </div>
+  <button class="iconbtn" id="gridBtn" title="Grid size - how many notes across and down">▦</button>
   <button class="txtbtn" id="archiveBtn" title="Show the archived notes">Archive</button>
   <button class="iconbtn" id="moreBtn" title="More">⋮</button>
 </header>
@@ -370,7 +371,7 @@
 <script>
 "use strict";
 /* ============================================================
-   DSR Notes — v1f
+   DSR Notes — v1g
    Local-first Google-Keep-style notepad (text / list / voice / draw)
    Storage: IndexedDB (notes + blob store).
    v1b: labels + label filter, drag-reorder checklist items, undo-delete.
@@ -380,6 +381,7 @@
    v1e: board render self-heals a stray null in NOTES (defensive hardening).
    v1f: X-by-Y board grid (default 3 x 5, scaled previews), "Archive" text buttons,
         voice typing + read aloud in text notes and lists.
+   v1g: ▦ grid-size button in the top bar; page loads network-first so updates show at once.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -1188,6 +1190,7 @@ function archiveBtnLabel(){
   b.title = view === 'archive' ? 'Back to your notes' : 'Show the archived notes';
   b.classList.toggle('on', view === 'archive');
 }
+$('#gridBtn').onclick = () => openGridSheet();   // v1g: grid size straight from the top bar
 $('#archiveBtn').onclick = () => {
   view = view === 'archive' ? 'board' : 'archive';
   localStorage.setItem('dsr-notes-view', view);
@@ -1203,7 +1206,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1f — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1g — local-first, optional sync') },
 ]);
 
 /* ---------- export / import ---------- */
