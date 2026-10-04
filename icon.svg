@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0b0b0b"/>
-  <rect x="112" y="96" width="288" height="320" rx="28" fill="none" stroke="#e8c86e" stroke-width="22"/>
-  <path d="M168 190h176M168 256h176M168 322h104" stroke="#e8c86e" stroke-width="22" stroke-linecap="round"/>
-  <circle cx="360" cy="140" r="46" fill="#d4af37"/>
+<!-- gold + one colour accent, matching the DSR Apps widget tile -->
+<rect width="512" height="512" rx="96" fill="#0A0A0A"/>
+<g transform="translate(106,106) scale(12.5)"><path d="M14,2H6c-1.1,0 -1.99,0.9 -1.99,2L4,20c0,1.1 0.89,2 1.99,2H18c1.1,0 2,-0.9 2,-2V8l-6,-6z" fill="#E8B830"/><path d="M13,9V3.5L18.5,9H13z" fill="#0E0E0E"/><path d="M8,12h8v2H8zM8,16h8v2H8z" fill="#3D8BFD"/></g>
 </svg>
