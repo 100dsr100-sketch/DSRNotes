@@ -1,5 +1,5 @@
 /* DSR Notes — offline app-shell cache */
-const CACHE = 'dsr-notes-v2b';
+const CACHE = 'dsr-notes-v3a';
 const OWN = 'dsr-notes-';   // only ever delete THIS app's old caches – every DSR app shares the github.io origin's cache storage
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 

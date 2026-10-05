@@ -256,6 +256,63 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:#000;border:1px solid var(--gold);color:var(--gold2);padding:9px 16px;border-radius:20px;z-index:80;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
   .toast.show{opacity:1}
   .toast .act{margin-left:12px;color:var(--gold2);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.5px;pointer-events:auto}
+
+  /* ---------- 3a ---------- */
+  .labelbar .sep{flex:0 0 1px;background:var(--line);margin:3px 2px}
+  /* simple formatting (cards, preview) */
+  .md h1,.md h2,.md h3{margin:.25em 0 .2em;line-height:1.25;color:inherit}
+  .md h1{font-size:1.3em} .md h2{font-size:1.15em} .md h3{font-size:1.05em}
+  .md ul{margin:.2em 0;padding-left:1.2em} .md li{margin:.1em 0}
+  .md .mdck{list-style:none;margin-left:-1.2em}
+  .md .mdck .bx2{display:inline-block;width:.95em;height:.95em;border:1.5px solid currentColor;border-radius:3px;margin-right:6px;vertical-align:-1px;opacity:.7}
+  .md .mdck.done{text-decoration:line-through;opacity:.6}
+  .md .mdck.done .bx2{background:var(--gold);border-color:var(--gold);opacity:1}
+  .md code{background:rgba(127,127,127,.18);border-radius:4px;padding:0 4px;font-size:.92em}
+  .md a,.md .lnk{color:var(--gold2);text-decoration:underline}
+  .card:not(.c-none) .md a,.card:not(.c-none) .md .lnk,.editor.tint .md a{color:#7a5f12}
+  .card .excerpt.md{white-space:normal}
+  .card .excerpt.md p{margin:0 0 .3em}
+  .mdview{font-size:16px;line-height:1.55;min-height:50vh;color:var(--ink)}
+  .editor.tint .mdview{color:var(--wash-ink)}
+  .mdview p{margin:0 0 .5em}
+  .mdview .mdck{cursor:pointer}
+  .fmtbar{display:flex;gap:6px;align-items:center;margin:0 0 10px;overflow-x:auto;scrollbar-width:none}
+  .fmtbar::-webkit-scrollbar{display:none}
+  .fmtbar button{flex:0 0 auto;min-width:34px;height:32px;border:1px solid var(--line);border-radius:8px;color:var(--gold2);font-size:14px;padding:0 8px}
+  .fmtbar button.on{background:var(--gold);color:#1a1400;border-color:var(--gold)}
+  .editor.tint .fmtbar button{border-color:rgba(0,0,0,.2);color:#3f3a2c}
+  .editor.tint .fmtbar button.on{background:#3f3a2c;color:#fff}
+  /* photos */
+  .card .cimg{margin:-12px -12px 8px;display:block;width:calc(100% + 24px);max-height:220px;object-fit:cover}
+  .grid.fixed .card .cimg{max-height:none;height:120px}
+  .imgstrip{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;scrollbar-width:none}
+  .imgstrip::-webkit-scrollbar{display:none}
+  .imgstrip img{height:110px;max-width:70vw;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:0 0 auto;cursor:zoom-in}
+  .viewer{position:fixed;inset:0;z-index:90;background:#000;display:flex;flex-direction:column}
+  .viewer[hidden]{display:none}
+  .viewer .vtop{display:flex;gap:6px;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 8px) 8px 8px}
+  .viewer .vimg{flex:1;display:grid;place-items:center;overflow:auto}
+  .viewer img{max-width:100%;max-height:100%;object-fit:contain}
+  /* card chips */
+  .card .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .card .chip{font-size:10.5px;border:1px solid var(--line);border-radius:10px;padding:1px 7px;color:var(--gold2)}
+  .card .chip.late{color:#fff;background:var(--danger);border-color:var(--danger)}
+  .card:not(.c-none) .chip{color:#7a5f12;border-color:var(--wash-line)}
+  .card .prog{font-size:11px;color:var(--dim);margin-left:auto}
+  /* multi-select */
+  .card.sel{outline:3px solid var(--gold2);outline-offset:-3px}
+  .selbar{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:40;background:#000;border:1px solid var(--gold);border-radius:16px;display:flex;align-items:center;gap:4px;padding:6px 8px;box-shadow:0 8px 24px rgba(0,0,0,.6);max-width:640px;margin:0 auto}
+  .selbar[hidden]{display:none}
+  .selbar .cnt{color:var(--gold2);font-weight:700;padding:0 6px;flex:1;white-space:nowrap}
+  .selbar button{height:38px;min-width:38px;border-radius:10px;color:var(--gold2);font-size:16px;padding:0 6px}
+  .selbar button:active{background:var(--bg2)}
+  .gensheet .item{display:block;width:100%;text-align:left;padding:11px 4px;border-bottom:1px solid var(--line)}
+  .gensheet .item small{display:block;color:var(--dim);font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .remrow{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+  .remrow button{border:1px solid var(--line);border-radius:16px;padding:6px 12px;font-size:13px}
+  .reminput{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;outline:none;color:var(--ink);color-scheme:dark}
+  .trashnote{font-size:11px;color:var(--danger);margin-top:6px}
+  .fabwrap[hidden],.imgstrip[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -263,7 +320,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">2b</span>
+    <span class="ver">3a</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
@@ -368,6 +425,33 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
   </div>
 </div>
 
+<!-- 3a: multi-select bar (long-press a note) -->
+<div class="selbar" id="selBar" hidden>
+  <button id="sbClose" title="Done">✕</button>
+  <span class="cnt" id="sbCount">1 selected</span>
+  <button id="sbPin" title="Pin / unpin">📌</button>
+  <button id="sbColor" title="Colour">🎨</button>
+  <button id="sbLabel" title="Add a label">#</button>
+  <button id="sbArchive" title="Archive / unarchive">🗄</button>
+  <button id="sbRestore" title="Restore" hidden>↺</button>
+  <button id="sbDelete" title="Delete">🗑</button>
+</div>
+
+<!-- 3a: photo viewer -->
+<div class="viewer" id="viewer" hidden>
+  <div class="vtop">
+    <button class="iconbtn" id="vDel" title="Remove this photo from the note">🗑</button>
+    <button class="iconbtn" id="vClose" title="Close">✕</button>
+  </div>
+  <div class="vimg"><img id="vImg" alt=""></div>
+</div>
+
+<!-- 3a: general purpose sheet (history, info, reminders, label picker) -->
+<div class="sheet gensheet" id="genSheet" hidden>
+  <div class="panel"><h4 id="genTitle"></h4><div id="genBody" style="max-height:60vh;overflow:auto"></div></div>
+</div>
+
+<input type="file" id="attachFile" accept="image/*" multiple hidden>
 <input type="file" id="importFile" accept="application/json" hidden>
 <input type="file" id="photoFile" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
@@ -386,6 +470,14 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
    v1f: X-by-Y board grid (default 3 x 5, scaled previews), "Archive" text buttons,
         voice typing + read aloud in text notes and lists.
    v1g: ▦ grid-size button in the top bar; page loads network-first so updates show at once.
+   3a: review + features from Keep / Samsung Notes / Apple Notes / Simplenote / Standard Notes:
+       photos in any note, simple formatting (bold, italic, headings, bullets, ticks, links) with a
+       preview, reminders (+ Google Calendar), a 30-day Trash, long-press multi-select, type filter
+       chips, sorting, version history, note <-> checklist, untick all / delete ticked, word counts,
+       save as a text file, home-screen shortcuts, share-to-DSR-Notes. Fixes: drawing undo kept up to
+       16 full-size canvas snapshots (~100 MB) - now strokes (redo too, smoother lines, pen pressure,
+       highlighter); edits in the last 0.6 s before leaving the app were lost; pin/archive didn't sync
+       until the next edit; search rebuilt the board on every keystroke.
    ============================================================ */
 
 const $  = s => document.querySelector(s);
@@ -432,6 +524,9 @@ let curDirty = false;
 let saveTimer = null;
 let activeLabel = localStorage.getItem('dsr-notes-label') || '';
 let pendingDel = null;          // { n, t } — note held for undo after delete
+let typeFilter = localStorage.getItem('dsr-notes-type') || '';   // 3a: '' | text | list | voice | draw | img | rem
+let sortMode = localStorage.getItem('dsr-notes-sort') || 'edited';  // 3a: edited | created | title
+const selected = new Set();     // 3a: multi-select (long-press)
 
 /* ---------- helpers ---------- */
 const COLORS = ['none','red','orange','gold','green','teal','blue','purple'];
@@ -445,11 +540,79 @@ function toast(msg, actLabel, actFn){
   t.classList.add('show');
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), actLabel ? 6000 : 1800);
 }
+/* 3a: a deleted note that still has its content (2b's deletes left empty records - those aren't shown) */
+function inTrash(n){ return !!(n && n.deleted && !n.purged && (n.title || n.body || (n.items || []).length || n.transcript || n.thumb || n.imgThumb || (n.images || []).length || n.dur)); }
+/* 3a: every blob a note owns (voice, drawing, photos) - used by sync, export, duplicate, trash purge */
+function noteBlobKeys(n){ return [n.audioId, n.imageId, ...(n.images || [])].filter(Boolean); }
+
+/* 3a: simple formatting - **bold** *italic* ~~strike~~ `code` # headings, - bullets, - [ ] / - [x] ticks, links.
+   card=true renders links as plain styled text (the whole card is one button). */
+function mdLite(src, card){
+  const inline = t => {
+    t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, card ? '<span class="lnk">$1</span>' : '<a href="$2" target="_blank" rel="noopener">$1</a>')
+         .replace(/(^|[\s(])(https?:\/\/[^\s<]+)/g, card ? '$1<span class="lnk">$2</span>' : '$1<a href="$2" target="_blank" rel="noopener">$2</a>')
+         .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+         .replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?!\w)/g, '$1<i>$2</i>')
+         .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+         .replace(/`([^`]+)`/g, '<code>$1</code>');
+    return t;
+  };
+  const out = []; let list = false;
+  esc(src || '').split('\n').forEach((ln, i) => {
+    let m;
+    if ((m = ln.match(/^\s*[-*] \[( |x|X)\] (.*)$/))){
+      if (!list){ out.push('<ul>'); list = true; }
+      out.push(`<li class="mdck${m[1] === ' ' ? '' : ' done'}" data-ln="${i}"><span class="bx2"></span>${inline(m[2])}</li>`);
+      return;
+    }
+    if ((m = ln.match(/^\s*[-*•] (.*)$/))){
+      if (!list){ out.push('<ul>'); list = true; }
+      out.push(`<li>${inline(m[1])}</li>`); return;
+    }
+    if (list){ out.push('</ul>'); list = false; }
+    if ((m = ln.match(/^(#{1,3}) (.*)$/))){ out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); return; }
+    out.push(ln.trim() ? `<p>${inline(ln)}</p>` : '<p>&nbsp;</p>');
+  });
+  if (list) out.push('</ul>');
+  return out.join('');
+}
+const hasMd = s => /(\*\*|~~|`|^#{1,3} |^\s*[-*•] |https?:\/\/)/m.test(s || '');
+
+/* 3a: photos are shrunk before they're stored - a 12 MP phone photo is ~5 MB, this keeps it ~300-600 KB */
+async function shrinkImage(file, maxPx, q){
+  const bmp = await createImageBitmap(file);
+  const sc = Math.min(1, maxPx / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close && bmp.close();
+  return await new Promise(r => c.toBlob(r, 'image/jpeg', q));
+}
+async function thumbDataURL(blob, px){
+  const bmp = await createImageBitmap(blob);
+  const sc = px / bmp.width, c = document.createElement('canvas');
+  c.width = px; c.height = Math.round(bmp.height * sc);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close && bmp.close();
+  return c.toDataURL('image/jpeg', 0.7);
+}
+function wordCount(n){
+  const t = [n.title, n.body, ...(n.items || []).map(i => i.text), n.transcript].filter(Boolean).join(' ');
+  return { words: (t.match(/\S+/g) || []).length, chars: t.length };
+}
+
 function blobToDataURL(blob){
   return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(blob); });
 }
 async function dataURLToBlob(u){ return (await fetch(u)).blob(); }
 function fmtDur(s){ s=Math.round(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function fmtWhen(ts){
+  const d = new Date(ts), t = new Date(), tm = new Date(t); tm.setDate(t.getDate() + 1);
+  const hm = d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+  if (d.toDateString() === t.toDateString()) return 'Today ' + hm;
+  if (d.toDateString() === tm.toDateString()) return 'Tomorrow ' + hm;
+  return d.toLocaleDateString([], { day:'numeric', month:'short' }) + ' ' + hm;
+}
 function fmtDate(ts){
   const d=new Date(ts), t=new Date();
   const same = d.toDateString()===t.toDateString();
@@ -462,7 +625,11 @@ const TOMB_TTL = 30 * 864e5;   // purge tombstones after 30 days
 async function loadNotes(){
   NOTES = (await DB.all('notes')) || [];
   const cut = now() - TOMB_TTL;
-  for (const n of NOTES.filter(x => x.deleted && (x.updated||0) < cut)) await DB.del('notes', n.id);
+  // 3a: deleted notes sit in the Trash for 30 days (content and blobs kept), then go for good
+  for (const n of NOTES.filter(x => x.deleted && (x.updated||0) < cut)){
+    for (const k of noteBlobKeys(n)) await DB.del('blobs', k);
+    await DB.del('notes', n.id);
+  }
   NOTES = NOTES.filter(x => !(x.deleted && (x.updated||0) < cut));
 }
 function scheduleSave(){ curDirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(commit, 600); }
@@ -470,7 +637,9 @@ async function commit(){
   if (!cur || !curDirty) return;
   curDirty = false;
   cur.updated = now();
-  await DB.put('notes', cur);
+  // 3a: working fields (_snap, _drawTouched ...) stay in memory - they're not stored or synced
+  const rec = {}; for (const k in cur) if (k[0] !== '_') rec[k] = cur[k];
+  await DB.put('notes', rec);
   const i = NOTES.findIndex(n => n && n.id === cur.id);
   if (i >= 0) NOTES[i] = cur; else NOTES.push(cur);
   maybeAutoSync();
@@ -480,9 +649,16 @@ async function commit(){
    BOARD RENDER
    ============================================================ */
 function noteMatches(n){
-  if (!n || n._deleted || n.deleted) return false;
+  if (!n || n._deleted) return false;
+  if (view === 'trash') return inTrash(n);
+  if (n.deleted) return false;
   if (view === 'archive' ? !n.archived : n.archived) return false;
   if (activeLabel && !(n.labels || []).includes(activeLabel)) return false;
+  if (typeFilter){                                         // 3a: type chips
+    if (typeFilter === 'img'){ if (!(n.images || []).length && n.type !== 'draw') return false; }
+    else if (typeFilter === 'rem'){ if (!n.remindAt) return false; }
+    else if (n.type !== typeFilter) return false;
+  }
   if (!query) return true;
   const hay = [n.title, n.body, ...(n.items||[]).map(i=>i.text), n.transcript, ...(n.labels||[])].join(' ').toLowerCase();
   return hay.includes(query);
@@ -494,13 +670,21 @@ function renderLabelBar(){
   NOTES.forEach(n => { if (n && !n._deleted && !n.deleted) (n.labels || []).forEach(l => set.add(l)); });
   const labels = [...set].sort((a, b) => a.localeCompare(b));
   if (activeLabel && !labels.includes(activeLabel)){ activeLabel = ''; localStorage.removeItem('dsr-notes-label'); }
-  if (!labels.length){ bar.hidden = true; bar.innerHTML = ''; return; }
+  if (view === 'trash'){ bar.hidden = true; bar.innerHTML = ''; return; }
+  // 3a: type chips first, then the labels
+  const TYPES = [['', 'All'], ['text', '✏️ Notes'], ['list', '☑️ Lists'], ['voice', '🎙️ Voice'], ['draw', '🎨 Drawings'], ['img', '🖼 Photos'], ['rem', '⏰ Reminders']];
   bar.hidden = false;
-  bar.innerHTML = `<button data-l="" class="${activeLabel ? '' : 'sel'}">All</button>` +
+  bar.innerHTML = TYPES.map(([k, t]) => `<button data-t="${k}" class="${typeFilter === k && !activeLabel ? 'sel' : ''}">${t}</button>`).join('') +
+    (labels.length ? '<span class="sep"></span>' : '') +
     labels.map(l => `<button data-l="${esc(l)}" class="${activeLabel === l ? 'sel' : ''}"># ${esc(l)}</button>`).join('');
   bar.querySelectorAll('button').forEach(b => b.onclick = () => {
-    activeLabel = b.dataset.l;
-    activeLabel ? localStorage.setItem('dsr-notes-label', activeLabel) : localStorage.removeItem('dsr-notes-label');
+    if (b.dataset.t !== undefined){
+      typeFilter = b.dataset.t; activeLabel = '';
+      localStorage.setItem('dsr-notes-type', typeFilter); localStorage.removeItem('dsr-notes-label');
+    } else {
+      activeLabel = activeLabel === b.dataset.l ? '' : b.dataset.l;
+      activeLabel ? localStorage.setItem('dsr-notes-label', activeLabel) : localStorage.removeItem('dsr-notes-label');
+    }
     renderBoard();
   });
 }
@@ -546,11 +730,15 @@ function openGridSheet(){
 function renderBoard(){
   if (NOTES.some(n => !n)) NOTES = NOTES.filter(Boolean);   // self-heal a stray null/undefined
   renderLabelBar();
-  const list = NOTES.filter(noteMatches)
-    .sort((a,b) => (b.updated||0) - (a.updated||0));
+  const SORTS = {                                          // 3a: sorting
+    edited:  (a,b) => (b.updated||0) - (a.updated||0),
+    created: (a,b) => (b.created||0) - (a.created||0),
+    title:   (a,b) => (a.title || noteAsText(a)).localeCompare(b.title || noteAsText(b), undefined, { sensitivity:'base' }),
+  };
+  const list = NOTES.filter(noteMatches).sort(SORTS[sortMode] || SORTS.edited);
 
-  const pinned = list.filter(n => n.pinned && view !== 'archive');
-  const others = view === 'archive' ? list : list.filter(n => !n.pinned);
+  const pinned = list.filter(n => n.pinned && view === 'board');
+  const others = view !== 'board' ? list : list.filter(n => !n.pinned);
 
   $('#pinnedSec').hidden = pinned.length === 0;
   $('#othersLabel').hidden = pinned.length === 0;
@@ -560,18 +748,39 @@ function renderBoard(){
   applyGrid();
   const none = list.length === 0;
   $('#empty').hidden = !none;
-  $('#emptyMsg').textContent = view === 'archive'
-    ? 'Nothing archived'
-    : (query ? 'No matches' : 'No notes yet — tap + to start');
+  $('#emptyMsg').textContent = view === 'archive' ? 'Nothing archived'
+    : view === 'trash' ? 'Trash is empty — deleted notes stay here for 30 days'
+    : (query || typeFilter || activeLabel ? 'No matches' : 'No notes yet — tap + to start');
+  $('.fabwrap').hidden = view === 'trash' || selected.size > 0;
+  updateSelBar();
+}
 
-  $$('#pinnedGrid .card, #othersGrid .card').forEach(el => {
-    const n = NOTES.find(x => x.id === el.dataset.id);
-    el.addEventListener('click', e => {
-      if (e.target.closest('.pin')) { togglePin(n); return; }
+/* 3a: one set of listeners for the whole board (2b added one per card on every redraw, every keystroke) */
+(function boardEvents(){
+  let lp = null, suppress = false;
+  ['#pinnedGrid', '#othersGrid'].forEach(id => {
+    const g = $(id);
+    g.addEventListener('pointerdown', e => {
+      const el = e.target.closest('.card'); if (!el) return;
+      const x0 = e.clientX, y0 = e.clientY;
+      clearTimeout(lp && lp.t);
+      lp = { el, x0, y0, t: setTimeout(() => { suppress = true; toggleSelect(el.dataset.id); navigator.vibrate && navigator.vibrate(15); }, 480) };
+    });
+    g.addEventListener('pointermove', e => { if (lp && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 10){ clearTimeout(lp.t); lp = null; } });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => g.addEventListener(ev, () => { if (lp){ clearTimeout(lp.t); lp = null; } }));
+    g.addEventListener('contextmenu', e => { if (e.target.closest('.card')) e.preventDefault(); });
+    g.addEventListener('click', e => {
+      const el = e.target.closest('.card'); if (!el) return;
+      if (suppress){ suppress = false; return; }
+      const n = NOTES.find(x => x.id === el.dataset.id); if (!n) return;
+      if (selected.size){ toggleSelect(n.id); return; }
+      if (view === 'trash'){ trashMenu(n); return; }
+      if (e.target.closest('.pin')){ togglePin(n); return; }
       openEditor(n);
     });
   });
-}
+})();
+let qTimer = null;
 
 function esc(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -579,11 +788,14 @@ function cardHTML(n){
   let inner = '';
   if (n.type === 'draw' && n.thumb){
     inner += `<img class="thumb" src="${n.thumb}" alt="">`;
+  } else if (n.imgThumb){                                    // 3a: first photo heads the card
+    inner += `<img class="cimg" src="${n.imgThumb}" alt="" loading="lazy">`;
   }
   if (n.title) inner += `<h3>${esc(n.title)}</h3>`;
 
   if (n.type === 'text' && n.body){
-    inner += `<div class="excerpt">${esc(n.body).slice(0,600)}</div>`;
+    const b = n.body.slice(0, 700);
+    inner += hasMd(b) ? `<div class="excerpt md">${mdLite(b, true)}</div>` : `<div class="excerpt">${esc(b)}</div>`;
   } else if (n.type === 'list'){
     const items = (n.items||[]).slice(0,8);
     inner += `<ul class="cklist">` + items.map(it =>
@@ -597,10 +809,21 @@ function cardHTML(n){
 
   if ((n.labels || []).length)
     inner += `<div class="labels">` + n.labels.map(l => `<span>${esc(l)}</span>`).join('') + `</div>`;
+  const chips = [];
+  if (n.remindAt){                                          // 3a: reminder chip
+    const late = !n.remindFired && n.remindAt < now();
+    chips.push(`<span class="chip${late || (n.remindFired && n.remindAt < now() && !n.remindDone) ? ' late' : ''}">⏰ ${fmtWhen(n.remindAt)}</span>`);
+  }
+  if ((n.images || []).length > 1) chips.push(`<span class="chip">🖼 ${n.images.length}</span>`);
+  if (chips.length) inner += `<div class="chips">${chips.join('')}</div>`;
+  const prog = n.type === 'list' && (n.items || []).length ? `<span class="prog">${n.items.filter(i => i.done).length}/${n.items.length} ✓</span>` : '';
+  inner += `<div class="meta"><span>${fmtDate(n.updated||n.created)}</span>${prog}</div>`;
+  if (n.deleted){
+    const left = Math.max(0, Math.ceil(((n.updated || 0) + TOMB_TTL - now()) / 864e5));
+    inner += `<div class="trashnote">Deleted · gone for good in ${left} day${left === 1 ? '' : 's'}</div>`;
+  }
 
-  inner += `<div class="meta"><span>${fmtDate(n.updated||n.created)}</span></div>`;
-
-  return `<button class="card c-${n.color||'none'} ${n.pinned?'pinned':''} ${n.type==='voice'?'voice':''}" data-id="${n.id}">
+  return `<button class="card c-${n.color||'none'} ${n.pinned?'pinned':''} ${n.type==='voice'?'voice':''} ${selected.has(n.id)?'sel':''}" data-id="${n.id}">
     <span class="pin ${n.pinned?'on':''}" title="Pin">📌</span>
     <div class="cin">${inner}</div>
   </button>`;
@@ -613,24 +836,92 @@ async function togglePin(n){
   n.pinned = !n.pinned; n.updated = now();
   await DB.put('notes', n);
   toast(n.pinned ? 'Pinned' : 'Unpinned');
-  renderBoard();
+  renderBoard(); maybeAutoSync();              // 3a: synced straight away (2b waited for the next edit)
 }
 async function toggleArchive(n){
   n.archived = !n.archived; n.updated = now();
   await DB.put('notes', n);
   const j = NOTES.findIndex(x=>x.id===n.id); if (j>=0) NOTES[j]=n;
   toast(n.archived ? 'Archived' : 'Restored');
-}
-async function deleteNote(n){
-  // leave a tombstone so the delete can propagate through sync, then expire
-  for (const k of [n.audioId, n.imageId]) if (k) await DB.del('blobs', k);
-  const tomb = { id: n.id, type: n.type, deleted: true, updated: now(),
-                 audioId: n.audioId || null, imageId: n.imageId || null };
-  await DB.put('notes', tomb);
-  const i = NOTES.findIndex(x => x.id === n.id);
-  if (i >= 0) NOTES[i] = tomb; else NOTES.push(tomb);
   maybeAutoSync();
 }
+async function deleteNote(n){
+  // 3a: to the Trash - the note keeps its content and blobs for 30 days (restorable), and the deletion
+  // still travels through sync; after 30 days loadNotes() removes it for good
+  delete n._deleted;
+  n.deleted = true; n.pinned = false; n.updated = now();
+  await DB.put('notes', n);
+  const i = NOTES.findIndex(x => x.id === n.id);
+  if (i >= 0) NOTES[i] = n; else NOTES.push(n);
+  maybeAutoSync();
+}
+async function restoreNote(n){
+  n.deleted = false; n.updated = now();
+  await DB.put('notes', n); maybeAutoSync();
+}
+async function purgeNote(n){
+  for (const k of noteBlobKeys(n)) await DB.del('blobs', k);
+  const tomb = { id: n.id, type: n.type, deleted: true, purged: true, updated: now() };
+  await DB.put('notes', tomb);
+  const i = NOTES.findIndex(x => x.id === n.id); if (i >= 0) NOTES[i] = tomb;
+  maybeAutoSync();
+}
+function trashMenu(n){
+  openMenuSheet([
+    { label:'Restore', icon:'↺', fn: async () => { await restoreNote(n); renderBoard(); toast('Restored'); } },
+    { label:'Delete for good', icon:'🗑', cls:'del', fn: async () => { await purgeNote(n); renderBoard(); toast('Deleted for good'); } },
+  ]);
+}
+
+/* ---------- 3a: multi-select ---------- */
+function toggleSelect(id){
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  renderBoard();
+}
+function updateSelBar(){
+  const bar = $('#selBar'); if (!bar) return;
+  bar.hidden = selected.size === 0;
+  if (!selected.size) return;
+  $('#sbCount').textContent = selected.size + ' selected';
+  const trash = view === 'trash';
+  $('#sbPin').hidden = $('#sbColor').hidden = $('#sbLabel').hidden = $('#sbArchive').hidden = trash;
+  $('#sbRestore').hidden = !trash;
+  $('#sbArchive').textContent = view === 'archive' ? '↥' : '🗄';
+}
+const selNotes = () => NOTES.filter(n => selected.has(n.id));
+async function selApply(fn, msg){
+  for (const n of selNotes()){ fn(n); n.updated = now(); await DB.put('notes', n); }
+  selected.clear(); renderBoard(); maybeAutoSync(); if (msg) toast(msg);
+}
+$('#sbClose').onclick = () => { selected.clear(); renderBoard(); };
+$('#sbPin').onclick = () => { const on = !selNotes().every(n => n.pinned); selApply(n => n.pinned = on, on ? 'Pinned' : 'Unpinned'); };
+$('#sbArchive').onclick = () => { const on = view !== 'archive'; selApply(n => { n.archived = on; if (on) n.pinned = false; }, on ? 'Archived' : 'Unarchived'); };
+$('#sbRestore').onclick = () => selApply(n => n.deleted = false, 'Restored');
+$('#sbColor').onclick = () => openColorSheet(c => selApply(n => n.color = c, 'Colour changed'));
+$('#sbLabel').onclick = () => pickLabel(l => selApply(n => { n.labels = n.labels || []; if (!n.labels.includes(l)) n.labels.push(l); }, 'Label added'));
+$('#sbDelete').onclick = async () => {
+  const list = selNotes(), trash = view === 'trash';
+  if (trash && !confirm(`Delete ${list.length} note${list.length === 1 ? '' : 's'} for good?`)) return;
+  for (const n of list) trash ? await purgeNote(n) : await deleteNote(n);
+  selected.clear(); renderBoard();
+  if (!trash) toast(`${list.length} moved to Trash`, 'Undo', async () => { for (const n of list) await restoreNote(n); renderBoard(); });
+};
+function pickLabel(cb){
+  const known = new Set(); NOTES.forEach(n => !n.deleted && (n.labels || []).forEach(l => known.add(l)));
+  genSheet('Add a label', [...known].sort((a, b) => a.localeCompare(b)).map(l => `<button class="item" data-l="${esc(l)}"># ${esc(l)}</button>`).join('') +
+    `<button class="item" data-new="1">＋ New label…</button>`, body => {
+      body.querySelectorAll('.item').forEach(b => b.onclick = () => {
+        const l = b.dataset.new ? (prompt('New label') || '').trim() : b.dataset.l;
+        closeGen(); if (l) cb(l);
+      });
+    });
+}
+function genSheet(title, html, wire){
+  $('#genTitle').textContent = title; $('#genBody').innerHTML = html;
+  if (wire) wire($('#genBody'));
+  $('#genSheet').hidden = false;
+}
+function closeGen(){ $('#genSheet').hidden = true; }
 async function flushPendingDelete(){
   if (!pendingDel) return;
   clearTimeout(pendingDel.t);
@@ -647,7 +938,7 @@ let audioURL = null, mediaRec = null, recChunks = [], recTimer = null, recStart 
 function newNote(type){
   return { id:uuid(), type, title:'', body:'', items:[], labels:[], color:'none',
            pinned:false, archived:false, created:now(), updated:now(),
-           audioId:null, imageId:null, dur:0, transcript:'', thumb:'' };
+           audioId:null, imageId:null, dur:0, transcript:'', thumb:'', images:[], imgThumb:'' };
 }
 
 function applyEditorTint(){
@@ -676,6 +967,81 @@ async function openEditor(noteOrType){
   if (cur.type === 'list')  buildListEditor();
   if (cur.type === 'voice') await buildVoiceEditor();
   if (cur.type === 'draw')  await buildDrawEditor();
+  // 3a: photos strip (any note but drawings) + what the note looked like when opened (version history)
+  if (cur.type !== 'draw'){ const st = document.createElement('div'); st.className = 'imgstrip'; st.id = 'imgStrip'; ebody.prepend(st); renderImgStrip(); }
+  cur._snap = snapOf(cur); cur._snapT = cur.updated;
+}
+
+/* ---------- 3a: version history (text + lists) ---------- */
+function snapOf(n){ return (n.type === 'text' || n.type === 'list') ? JSON.stringify({ title: n.title || '', body: n.body || '', items: (n.items || []).map(i => ({ text: i.text, done: !!i.done })) }) : null; }
+function recordHistory(){
+  if (!cur || !cur._snap) return;
+  const nowSnap = snapOf(cur);
+  if (nowSnap !== cur._snap){
+    const old = JSON.parse(cur._snap);
+    if (old.title || old.body || old.items.length){
+      cur.history = [{ t: cur._snapT || cur.updated || now(), ...old }, ...(cur.history || [])].slice(0, 10);
+      curDirty = true;
+    }
+  }
+  delete cur._snap; delete cur._snapT;
+}
+function openHistory(){
+  const h = cur.history || [];
+  if (!h.length){ toast('No earlier versions yet'); return; }
+  genSheet('Version history', h.map((v, i) => `<button class="item" data-i="${i}">${new Date(v.t).toLocaleString()}<small>${esc(v.title || '')} ${esc((v.body || v.items.map(x => x.text).join(', ')).slice(0, 90))}</small></button>`).join(''), body => {
+    body.querySelectorAll('.item').forEach(b => b.onclick = () => {
+      const v = h[+b.dataset.i];
+      const before = JSON.parse(snapOf(cur));
+      cur.history = [{ t: now(), ...before }, ...h.filter((_, j) => j !== +b.dataset.i)].slice(0, 10);
+      cur.title = v.title; cur.body = v.body; cur.items = v.items.map(x => ({ ...x, id: uuid() }));
+      closeGen(); scheduleSave();
+      const keep = cur; cur._snap = snapOf(cur); openEditor(keep).then(() => toast('Earlier version restored'));
+    });
+  });
+}
+
+/* ---------- 3a: photos in any note ---------- */
+let stripURLs = [];
+async function renderImgStrip(){
+  const st = $('#imgStrip'); if (!st || !cur) return;
+  stripURLs.forEach(u => URL.revokeObjectURL(u)); stripURLs = [];
+  st.innerHTML = '';
+  for (const k of (cur.images || [])){
+    const rec = await DB.get('blobs', k); if (!rec) continue;
+    const u = URL.createObjectURL(rec.blob); stripURLs.push(u);
+    const im = document.createElement('img'); im.src = u; im.alt = ''; im.onclick = () => openViewer(k, u);
+    st.appendChild(im);
+  }
+  st.hidden = !st.children.length;
+}
+async function addPhotos(files){
+  if (!cur || !files.length) return;
+  cur.images = cur.images || [];
+  toast('Adding photo' + (files.length > 1 ? 's' : '') + '…');
+  for (const f of files){
+    try {
+      const blob = await shrinkImage(f, 2048, 0.85), k = uuid();
+      await DB.put('blobs', { key: k, blob });
+      cur.images.push(k);
+      if (!cur.imgThumb) cur.imgThumb = await thumbDataURL(blob, 400);
+    } catch(e){ toast("Couldn't read that image"); }
+  }
+  scheduleSave(); renderImgStrip();
+}
+$('#attachFile').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; addPhotos(fs); });
+let viewerKey = null;
+function openViewer(k, url){ viewerKey = k; $('#vImg').src = url; $('#viewer').hidden = false; }
+$('#vClose').onclick = () => { $('#viewer').hidden = true; viewerKey = null; };
+$('#vDel').onclick = async () => {
+  if (!cur || !viewerKey) return;
+  const k = viewerKey;
+  cur.images = (cur.images || []).filter(x => x !== k);
+  await DB.del('blobs', k);
+  if (cur.images.length){ const rec = await DB.get('blobs', cur.images[0]); cur.imgThumb = rec ? await thumbDataURL(rec.blob, 400) : ''; }
+  else cur.imgThumb = '';
+  $('#viewer').hidden = true; viewerKey = null;
+  scheduleSave(); renderImgStrip(); toast('Photo removed');
 }
 
 /* ---- v1f: voice typing (text notes + lists) ----
@@ -758,12 +1124,15 @@ async function closeEditor(){
   if (audioURL) { URL.revokeObjectURL(audioURL); audioURL = null; }
 
   if (cur && cur.type === 'draw') await saveDrawing();   // capture final canvas
+  recordHistory();                                         // 3a
   clearTimeout(saveTimer);
   await commit();
+  stripURLs.forEach(u => URL.revokeObjectURL(u)); stripURLs = [];
+  $('#viewer').hidden = true;
 
   // discard genuinely empty brand-new notes
   const empty = cur && !cur.title && !cur.body &&
-                !(cur.items||[]).length && !cur.audioId && !cur.imageId;
+                !(cur.items||[]).length && !cur.audioId && !cur.imageId && !(cur.images||[]).length;
   if (empty){ await DB.del('notes', cur.id); NOTES = NOTES.filter(n=>n.id!==cur.id); }
 
   cur = null;
@@ -776,11 +1145,56 @@ async function closeEditor(){
 function buildTextEditor(){
   ebody.innerHTML = `
     <input class="etitle" id="fTitle" placeholder="Title" value="${esc(cur.title)}">
-    <textarea class="etext" id="fBody" placeholder="Note…">${esc(cur.body)}</textarea>`;
+    <div class="fmtbar" id="fmtBar">
+      <button data-f="b" title="Bold"><b>B</b></button>
+      <button data-f="i" title="Italic"><i>I</i></button>
+      <button data-f="s" title="Strikethrough"><s>S</s></button>
+      <button data-f="h" title="Heading">H</button>
+      <button data-f="ul" title="Bullet">•</button>
+      <button data-f="ck" title="Tick box">☐</button>
+      <button data-f="ln" title="Link">🔗</button>
+      <button data-f="pv" id="pvBtn" title="Preview - see the formatting, tap ticks and links">👁 Preview</button>
+    </div>
+    <textarea class="etext" id="fBody" placeholder="Note…">${esc(cur.body)}</textarea>
+    <div class="mdview md" id="mdView" hidden></div>`;
   $('#fTitle').oninput = e => { cur.title = e.target.value; scheduleSave(); };
   const ta = $('#fBody');
   ta.oninput = e => { cur.body = e.target.value; scheduleSave(); autoGrow(ta); };
   autoGrow(ta);
+  $('#fmtBar').onclick = e => { const b = e.target.closest('button'); if (b) fmt(b.dataset.f); };
+  $('#mdView').onclick = e => {                              // tap a tick in the preview to tick it
+    const li = e.target.closest('.mdck'); if (!li || e.target.closest('a')) return;
+    const lines = cur.body.split('\n'), i = +li.dataset.ln;
+    lines[i] = lines[i].replace(/\[( |x|X)\]/, m => m === '[ ]' ? '[x]' : '[ ]');
+    cur.body = ta.value = lines.join('\n'); scheduleSave(); $('#mdView').innerHTML = mdLite(cur.body);
+  };
+}
+/* 3a: formatting - wraps the selection, or starts the current line(s) with a marker */
+function fmt(f){
+  const ta = $('#fBody'), pv = $('#mdView');
+  if (f === 'pv'){
+    const show = pv.hidden;
+    pv.hidden = !show; ta.hidden = show;
+    if (show) pv.innerHTML = mdLite(cur.body);
+    $('#pvBtn').classList.toggle('on', show); $('#pvBtn').textContent = show ? '✎ Edit' : '👁 Preview';
+    return;
+  }
+  if (ta.hidden) fmt('pv');
+  const a = ta.selectionStart, b = ta.selectionEnd, v = ta.value, sel = v.slice(a, b);
+  const wrap = (l, r, ph) => { const t = sel || ph; ta.value = v.slice(0, a) + l + t + r + v.slice(b); ta.selectionStart = a + l.length; ta.selectionEnd = a + l.length + t.length; };
+  const prefix = (m) => {
+    const ls = v.lastIndexOf('\n', a - 1) + 1, le = v.indexOf('\n', b) < 0 ? v.length : v.indexOf('\n', b);
+    const block = v.slice(ls, le).split('\n').map(l => l.startsWith(m) ? l.slice(m.length) : m + l).join('\n');
+    ta.value = v.slice(0, ls) + block + v.slice(le); ta.selectionStart = ta.selectionEnd = ls + block.length;
+  };
+  if (f === 'b') wrap('**', '**', 'bold');
+  if (f === 'i') wrap('*', '*', 'italic');
+  if (f === 's') wrap('~~', '~~', 'text');
+  if (f === 'h') prefix('# ');
+  if (f === 'ul') prefix('- ');
+  if (f === 'ck') prefix('- [ ] ');
+  if (f === 'ln'){ const u = prompt('Link address (https://…)', 'https://'); if (!u || u === 'https://') return; wrap('[', '](' + u.trim() + ')', 'link'); }
+  ta.focus(); cur.body = ta.value; autoGrow(ta); scheduleSave();
 }
 function autoGrow(ta){ ta.style.height='auto'; ta.style.height = Math.max(ta.scrollHeight, 260)+'px'; }
 
@@ -938,8 +1352,11 @@ function startRecognition(){
   try { recognizer.start(); } catch(e){}
 }
 
-/* ---- drawing ---- */
-let pad, pctx, drawing = false, last = null, undoStack = [], penColor = '#111111', penSize = 4, eraser = false;
+/* ---- drawing ----
+   3a: undo/redo by strokes. 2b kept up to 16 full 1080x1440 snapshots (6 MB each, ~100 MB) for undo - heavy
+   on a phone. Now the picture is the background it opened with + a list of strokes; undo drops the last one
+   and redraws. Smoother lines (all the pointer's in-between points), pen pressure, and a highlighter. */
+let pad, pctx, drawing = false, penColor = '#111111', penSize = 4, tool = 'pen', strokes = [], redoStack = [], live = null, baseBmp = null;
 const PAD_W = 1080, PAD_H = 1440;
 
 async function buildDrawEditor(){
@@ -951,37 +1368,39 @@ async function buildDrawEditor(){
       <div class="canvashold"><canvas id="pad" width="${PAD_W}" height="${PAD_H}"></canvas></div>
       <div class="tools" id="tools">
         <button class="tbtn" id="tPen" title="Pen">✎</button>
+        <button class="tbtn" id="tHi" title="Highlighter">🖍</button>
         <button class="tbtn" id="tErase" title="Eraser">⌫</button>
         <input type="range" id="tSize" min="1" max="40" value="${penSize}">
         <span id="swatches" style="display:flex;gap:8px"></span>
         <button class="tbtn" id="tPhoto" title="Add photo">🖼</button>
         <button class="tbtn" id="tUndo" title="Undo">↺</button>
+        <button class="tbtn" id="tRedo" title="Redo">↻</button>
         <button class="tbtn" id="tClear" title="Clear">🗑</button>
       </div>
     </div>`;
   $('#fTitle').oninput = e => { cur.title = e.target.value; scheduleSave(); };
 
   pad = $('#pad'); pctx = pad.getContext('2d');
-  pctx.fillStyle = '#fff'; pctx.fillRect(0,0,PAD_W,PAD_H);
-  pctx.lineCap = 'round'; pctx.lineJoin = 'round';
-
+  strokes = []; redoStack = []; baseBmp = null;
   if (cur.imageId){
     const rec = await DB.get('blobs', cur.imageId);
-    if (rec){ const img = new Image(); img.onload = () => { pctx.drawImage(img,0,0,PAD_W,PAD_H); }; img.src = await blobToDataURL(rec.blob); }
+    if (rec) try { baseBmp = await createImageBitmap(rec.blob); } catch(e){}
   }
-  undoStack = [];
+  redrawAll();
 
-  const cols = ['#111111','#c0563e','#d4af37','#3a9d5d','#3a86c9','#8659c9','#ffffff'];
+  const cols = ['#111111','#c0563e','#e07b2a','#d4af37','#3a9d5d','#2aa7a0','#3a86c9','#8659c9','#d14f9a','#ffffff'];
   $('#swatches').innerHTML = cols.map(c => `<button class="swatch" data-c="${c}" style="background:${c}"></button>`).join('');
   const selSwatch = c => $$('#swatches .swatch').forEach(s => s.classList.toggle('sel', s.dataset.c === c));
-  $$('#swatches .swatch').forEach(s => s.onclick = () => { penColor = s.dataset.c; eraser = false; setTool(); selSwatch(penColor); });
+  $$('#swatches .swatch').forEach(s => s.onclick = () => { penColor = s.dataset.c; if (tool === 'eraser') tool = 'pen'; setTool(); selSwatch(penColor); });
   selSwatch(penColor);
 
   $('#tSize').oninput = e => { penSize = +e.target.value; };
-  $('#tPen').onclick   = () => { eraser = false; setTool(); };
-  $('#tErase').onclick = () => { eraser = true;  setTool(); };
-  $('#tUndo').onclick  = popUndo;
-  $('#tClear').onclick = () => { pushUndo(); pctx.fillStyle='#fff'; pctx.fillRect(0,0,PAD_W,PAD_H); markDraw(); };
+  $('#tPen').onclick   = () => { tool = 'pen'; setTool(); };
+  $('#tHi').onclick    = () => { tool = 'hi'; setTool(); };
+  $('#tErase').onclick = () => { tool = 'eraser'; setTool(); };
+  $('#tUndo').onclick  = () => { const st = strokes.pop(); if (st){ redoStack.push(st); redrawAll(); markDraw(); } };
+  $('#tRedo').onclick  = () => { const st = redoStack.pop(); if (st){ strokes.push(st); redrawAll(); markDraw(); } };
+  $('#tClear').onclick = () => { strokes.push({ mode:'clear' }); redoStack = []; redrawAll(); markDraw(); };
   $('#tPhoto').onclick = () => $('#photoFile').click();
   setTool();
 
@@ -991,30 +1410,64 @@ async function buildDrawEditor(){
   pad.addEventListener('pointercancel', pEnd);
 }
 function setTool(){
-  const pen = $('#tPen'), er = $('#tErase');
-  if (pen) pen.classList.toggle('sel', !eraser);
-  if (er)  er.classList.toggle('sel', eraser);
+  [['#tPen','pen'],['#tHi','hi'],['#tErase','eraser']].forEach(([id, t]) => { const b = $(id); if (b) b.classList.toggle('sel', tool === t); });
 }
 function padPos(e){
   const r = pad.getBoundingClientRect();
-  return { x:(e.clientX - r.left) * (PAD_W / r.width), y:(e.clientY - r.top) * (PAD_H / r.height) };
+  return { x:(e.clientX - r.left) * (PAD_W / r.width), y:(e.clientY - r.top) * (PAD_H / r.height),
+           p: e.pointerType === 'pen' && e.pressure ? e.pressure : 0.5 };
 }
-function pushUndo(){ try{ undoStack.push(pctx.getImageData(0,0,PAD_W,PAD_H)); if (undoStack.length>16) undoStack.shift(); }catch(e){} }
-function popUndo(){ const d = undoStack.pop(); if (d){ pctx.putImageData(d,0,0); markDraw(); } }
-function pStart(e){ pad.setPointerCapture(e.pointerId); pushUndo(); drawing = true; last = padPos(e); pDot(last); }
+function strokeStyle(st){
+  pctx.globalCompositeOperation = st.mode === 'hi' ? 'multiply' : 'source-over';
+  pctx.globalAlpha = st.mode === 'hi' ? 0.35 : 1;
+  pctx.strokeStyle = pctx.fillStyle = st.mode === 'eraser' ? '#ffffff' : st.color;
+  pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+}
+const widthAt = (st, p) => st.mode === 'eraser' ? st.size * 2.2 : st.mode === 'hi' ? st.size * 3 : st.size * (0.6 + p * 0.8);
+function drawSeg(st, a, b){
+  strokeStyle(st);
+  pctx.lineWidth = widthAt(st, b.p);
+  pctx.beginPath(); pctx.moveTo(a.x, a.y); pctx.lineTo(b.x, b.y); pctx.stroke();
+}
+function drawStroke(st){
+  if (st.mode === 'clear'){ pctx.globalAlpha = 1; pctx.globalCompositeOperation = 'source-over'; pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, PAD_W, PAD_H); return; }
+  if (st.mode === 'image'){ pctx.globalAlpha = 1; pctx.globalCompositeOperation = 'source-over'; pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, PAD_W, PAD_H);
+    const s2 = Math.min(PAD_W / st.bmp.width, PAD_H / st.bmp.height), w = st.bmp.width * s2, h = st.bmp.height * s2;
+    pctx.drawImage(st.bmp, (PAD_W - w) / 2, (PAD_H - h) / 2, w, h); return; }
+  const P = st.pts;
+  if (P.length === 1){ strokeStyle(st); pctx.beginPath(); pctx.arc(P[0].x, P[0].y, widthAt(st, P[0].p) / 2, 0, 7); pctx.fill(); return; }
+  if (st.mode === 'hi'){                      // one path, so the see-through ink doesn't darken where segments overlap
+    strokeStyle(st); pctx.lineWidth = widthAt(st, 0.5);
+    pctx.beginPath(); pctx.moveTo(P[0].x, P[0].y); for (let k = 1; k < P.length; k++) pctx.lineTo(P[k].x, P[k].y); pctx.stroke(); return;
+  }
+  for (let k = 1; k < P.length; k++) drawSeg(st, P[k - 1], P[k]);
+}
+function redrawAll(){
+  pctx.globalAlpha = 1; pctx.globalCompositeOperation = 'source-over';
+  pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, PAD_W, PAD_H);
+  if (baseBmp) pctx.drawImage(baseBmp, 0, 0, PAD_W, PAD_H);
+  strokes.forEach(drawStroke);
+  pctx.globalAlpha = 1; pctx.globalCompositeOperation = 'source-over';
+}
+function pStart(e){
+  pad.setPointerCapture(e.pointerId); drawing = true; redoStack = [];
+  live = { mode: tool, color: penColor, size: penSize, pts: [padPos(e)] };
+  if (tool !== 'hi') drawStroke(live);
+}
 function pMove(e){
+  if (!drawing || !live) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of (evs.length ? evs : [e])){
+    const p = padPos(ev), a = live.pts[live.pts.length - 1];
+    live.pts.push(p);
+    if (live.mode === 'hi'){ redrawAll(); drawStroke(live); } else drawSeg(live, a, p);
+  }
+}
+function pEnd(){
   if (!drawing) return;
-  const p = padPos(e);
-  pctx.strokeStyle = eraser ? '#ffffff' : penColor;
-  pctx.lineWidth = eraser ? penSize*2.2 : penSize;
-  pctx.beginPath(); pctx.moveTo(last.x,last.y); pctx.lineTo(p.x,p.y); pctx.stroke();
-  last = p;
+  drawing = false;
+  if (live){ strokes.push(live); live = null; redrawAll(); markDraw(); }
 }
-function pDot(p){
-  pctx.fillStyle = eraser ? '#ffffff' : penColor;
-  pctx.beginPath(); pctx.arc(p.x,p.y,(eraser?penSize*2.2:penSize)/2,0,7); pctx.fill();
-}
-function pEnd(){ if (drawing){ drawing = false; markDraw(); } }
 function markDraw(){ cur._drawTouched = true; scheduleSave(); }
 
 async function saveDrawing(){
@@ -1034,16 +1487,11 @@ async function saveDrawing(){
 $('#photoFile').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f || !pad) return;
-  const img = new Image();
-  img.onload = () => {
-    pushUndo();
-    pctx.fillStyle = '#fff'; pctx.fillRect(0,0,PAD_W,PAD_H);
-    const s = Math.min(PAD_W / img.width, PAD_H / img.height);
-    const w = img.width * s, h = img.height * s;
-    pctx.drawImage(img, (PAD_W-w)/2, (PAD_H-h)/2, w, h);
-    markDraw();
-  };
-  img.src = await blobToDataURL(f);
+  try {
+    const bmp = await createImageBitmap(f);
+    strokes.push({ mode:'image', bmp }); redoStack = [];     // undo-able like any stroke
+    redrawAll(); markDraw();
+  } catch(err){ toast("Couldn't read that image"); }
 });
 
 /* ============================================================
@@ -1059,11 +1507,107 @@ $('#ePin').onclick = () => {
 $('#eArchive').onclick = async () => { await toggleArchive(cur); $('#eArchive').textContent = cur.archived ? 'Unarchive' : 'Archive'; };
 $('#eColor').onclick = () => openColorSheet();
 $('#eMenu').onclick = () => openMenuSheet([
+  ...(cur.type !== 'draw' ? [{ label:'Add photo', icon:'🖼', fn: () => $('#attachFile').click() }] : []),
+  { label: cur.remindAt ? 'Reminder: ' + fmtWhen(cur.remindAt) + '…' : 'Remind me…', icon:'⏰', fn: openReminder },
   { label:'Labels…', icon:'#', fn: openLabelSheet },
+  ...(cur.type === 'text' ? [{ label:'Turn into a checklist', icon:'☑', fn: () => convertCur('list') }] : []),
+  ...(cur.type === 'list' ? [
+    { label:'Turn into a note', icon:'✏', fn: () => convertCur('text') },
+    { label:'Untick all', icon:'☐', fn: () => { cur.items.forEach(i => i.done = false); renderCkList(); scheduleSave(); } },
+    { label:'Delete ticked items', icon:'✓', fn: () => { const n0 = cur.items.length; cur.items = cur.items.filter(i => !i.done); renderCkList(); scheduleSave(); toast(`${n0 - cur.items.length} removed`); } },
+  ] : []),
+  ...((cur.type === 'text' || cur.type === 'list') ? [{ label:'Version history', icon:'🕘', fn: openHistory }] : []),
   { label:'Duplicate', icon:'⧉', fn: duplicateCur },
   { label:'Share text', icon:'↗', fn: shareCur },
+  { label:'Save as text file', icon:'⭳', fn: saveAsFile },
+  { label:'Note info', icon:'ⓘ', fn: () => {
+      const c = wordCount(cur);
+      genSheet('Note info', `<div class="rechint" style="line-height:1.9;font-size:14px">Created ${new Date(cur.created).toLocaleString()}<br>Edited ${new Date(cur.updated).toLocaleString()}<br>${c.words} words · ${c.chars} characters` +
+        ((cur.images || []).length ? `<br>${cur.images.length} photo${cur.images.length > 1 ? 's' : ''}` : '') + `</div>`);
+    } },
   { label:'Delete note', icon:'🗑', cls:'del', fn: deleteCurWithUndo },
 ]);
+
+/* ---------- 3a: note <-> checklist ---------- */
+async function convertCur(to){
+  recordHistory();
+  if (to === 'list'){
+    cur.items = (cur.body || '').split('\n').map(l => l.trim()).filter(Boolean)
+      .map(l => { const m = l.match(/^[-*•]\s*(\[( |x|X)\]\s*)?(.*)$/); return { id: uuid(), text: m ? m[3] : l, done: !!(m && m[2] && m[2] !== ' ') }; });
+    cur.body = '';
+  } else {
+    cur.body = (cur.items || []).map(i => (i.done ? '- [x] ' : '- [ ] ') + i.text).join('\n');
+    cur.items = [];
+  }
+  cur.type = to; curDirty = true; await commit();
+  const keep = cur; await openEditor(keep);
+  toast(to === 'list' ? 'Now a checklist' : 'Now a note');
+}
+function saveAsFile(){
+  const text = noteAsText(cur);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = (cur.title || 'note').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) + '.txt';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- 3a: reminders ----------
+   A web app can only alert you while it's open (or the next time you open it) - there's no way for a
+   page to wake the phone at a set time. So a reminder also offers a Google Calendar entry, which will. */
+function openReminder(){
+  const pad = d => String(d).padStart(2, '0');
+  const local = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const at = (days, h) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d.getTime(); };
+  const later = at(0, 18) > now() + 30 * 60000 ? at(0, 18) : now() + 3600000;
+  genSheet('Reminder', `
+    <div class="remrow">
+      <button data-at="${later}">${at(0, 18) > now() + 30 * 60000 ? 'This evening (6 pm)' : 'In an hour'}</button>
+      <button data-at="${at(1, 9)}">Tomorrow 9 am</button>
+      <button data-at="${at(7, 9)}">Next week</button>
+    </div>
+    <input type="datetime-local" class="reminput" id="remAt" value="${cur.remindAt ? local(cur.remindAt) : ''}">
+    <div class="rechint" style="margin:10px 0">The app can only remind you while it's open (or the next time you open it). For a phone alarm, add it to Google Calendar too.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button id="remSave" class="txtbtn on">Save</button>
+      <button id="remCal" class="txtbtn">Add to Google Calendar</button>
+      ${cur.remindAt ? '<button id="remClear" class="txtbtn">Remove</button>' : ''}
+    </div>`, body => {
+      body.querySelectorAll('[data-at]').forEach(b => b.onclick = () => { $('#remAt').value = local(+b.dataset.at); });
+      const val = () => { const v = $('#remAt').value; return v ? new Date(v).getTime() : 0; };
+      $('#remSave').onclick = async () => {
+        const t = val(); if (!t){ toast('Pick a time first'); return; }
+        cur.remindAt = t; cur.remindFired = false; cur.remindDone = false; scheduleSave(); closeGen();
+        toast('Reminder ' + fmtWhen(t));
+        try { if ('Notification' in window && Notification.permission === 'default') await Notification.requestPermission(); } catch(e){}
+      };
+      $('#remCal').onclick = () => {
+        const t = val() || cur.remindAt; if (!t){ toast('Pick a time first'); return; }
+        const z = ts => new Date(ts).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+        const u = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(cur.title || noteAsText(cur).slice(0, 60) || 'DSR Notes reminder') +
+                  '&dates=' + z(t) + '/' + z(t + 15 * 60000) + '&details=' + encodeURIComponent(noteAsText(cur).slice(0, 1500));
+        window.open(u, '_blank', 'noopener');
+      };
+      const rc = $('#remClear'); if (rc) rc.onclick = () => { cur.remindAt = 0; cur.remindFired = false; scheduleSave(); closeGen(); toast('Reminder removed'); };
+    });
+}
+async function checkReminders(){
+  if (document.hidden) return;
+  const due = NOTES.filter(n => n && n.remindAt && !n.remindFired && !n.deleted && n.remindAt <= now());
+  for (const n of due){
+    n.remindFired = true; await DB.put('notes', n);
+    const title = n.title || noteAsText(n).split('\n')[0].slice(0, 60) || 'Reminder';
+    try {
+      if ('Notification' in window && Notification.permission === 'granted'){
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) reg.showNotification('⏰ ' + title, { body: noteAsText(n).slice(0, 120), icon: 'icon.svg', tag: n.id });
+        else new Notification('⏰ ' + title);
+      }
+    } catch(e){}
+    toast('⏰ ' + title, 'Open', () => openEditor(n));
+  }
+  if (due.length) renderBoard();
+}
+setInterval(checkReminders, 30000);
 
 async function deleteCurWithUndo(){
   await flushPendingDelete();
@@ -1074,7 +1618,7 @@ async function deleteCurWithUndo(){
   cur = null; editor.hidden = true; editor.classList.remove('tint'); renderBoard();
   const t = setTimeout(() => { pendingDel = null; deleteNote(n); }, 6000);
   pendingDel = { n, t };
-  toast('Note deleted', 'Undo', () => {
+  toast('Moved to Trash', 'Undo', () => {
     clearTimeout(t); pendingDel = null;
     delete n._deleted;
     DB.put('notes', n);
@@ -1122,6 +1666,9 @@ async function duplicateCur(){
   for (const k of ['audioId','imageId']){
     if (copy[k]){ const rec = await DB.get('blobs', copy[k]); if (rec){ const nk = uuid(); await DB.put('blobs',{key:nk,blob:rec.blob}); copy[k]=nk; } }
   }
+  copy.images = [];                                          // 3a: photos are copied too
+  for (const k of (cur.images || [])){ const rec = await DB.get('blobs', k); if (rec){ const nk = uuid(); await DB.put('blobs', { key:nk, blob:rec.blob }); copy.images.push(nk); } }
+  delete copy.history; delete copy._snap;
   await DB.put('notes', copy); NOTES.push(copy);
   toast('Duplicated');
 }
@@ -1139,14 +1686,15 @@ async function shareCur(){
 }
 
 /* ---------- colour sheet ---------- */
-function openColorSheet(){
+function openColorSheet(onPick){
   const row = $('#colorRow');
   row.innerHTML = COLORS.map(c =>
-    `<button data-c="${c}" title="${COLOR_NAME[c]||c}" class="${cur.color===c?'sel':''}" style="background:${COLOR_HEX[c]}"></button>`).join('');
+    `<button data-c="${c}" title="${COLOR_NAME[c]||c}" class="${!onPick && cur.color===c?'sel':''}" style="background:${COLOR_HEX[c]}"></button>`).join('');
   row.querySelectorAll('button').forEach(b => b.onclick = () => {
+    $('#colorSheet').hidden = true;
+    if (onPick){ onPick(b.dataset.c); return; }        // 3a: several notes at once
     cur.color = b.dataset.c; scheduleSave();
     applyEditorTint();
-    $('#colorSheet').hidden = true;
   });
   $('#colorSheet').hidden = false;
 }
@@ -1186,22 +1734,19 @@ document.addEventListener('click', e => {
 /* ============================================================
    HEADER ACTIONS
    ============================================================ */
-$('#q').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); renderBoard(); });
+$('#q').addEventListener('input', e => {   // 3a: wait for a pause in typing before rebuilding the board
+  query = e.target.value.trim().toLowerCase();
+  clearTimeout(qTimer); qTimer = setTimeout(renderBoard, 140);
+});
 
 function archiveBtnLabel(){
   const b = $('#archiveBtn');
-  b.textContent = view === 'archive' ? '‹ Notes' : 'Archive';
+  b.textContent = view !== 'board' ? '‹ Notes' : 'Archive';
   b.title = view === 'archive' ? 'Back to your notes' : 'Show the archived notes';
   b.classList.toggle('on', view === 'archive');
 }
 $('#gridBtn').onclick = () => openGridSheet();   // v1g: grid size straight from the top bar
-$('#archiveBtn').onclick = () => {
-  view = view === 'archive' ? 'board' : 'archive';
-  localStorage.setItem('dsr-notes-view', view);
-  archiveBtnLabel();
-  renderBoard();
-  toast(view === 'archive' ? 'Archive' : 'Notes');
-};
+$('#archiveBtn').onclick = () => setView(view !== 'board' ? 'board' : 'archive');
 
 $('#moreBtn').onclick = () => openMenuSheet([
   ...(SYNC.cfg.url ? [{ label:'Sync now', icon:'☁', fn: () => syncNow() }] : []),
@@ -1210,14 +1755,31 @@ $('#moreBtn').onclick = () => openMenuSheet([
   { label:'Export backup (.json)', icon:'⭳', fn: exportAll },
   { label:'Import backup', icon:'⭱', fn: () => $('#importFile').click() },
   { label: view==='archive' ? 'Show notes' : 'Show archive', icon:'🗄', fn: () => $('#archiveBtn').click() },
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes v1g — local-first, optional sync') },
+  { label: view==='trash' ? 'Leave the Trash' : `Trash (${NOTES.filter(inTrash).length})`, icon:'🗑', fn: () => setView(view === 'trash' ? 'board' : 'trash') },
+  { label:'Sort: ' + ({ edited:'last edited', created:'date created', title:'title A–Z' }[sortMode] || 'last edited') + ' (tap to change)', icon:'⇅', fn: () => {
+      sortMode = { edited:'created', created:'title', title:'edited' }[sortMode] || 'edited';
+      localStorage.setItem('dsr-notes-sort', sortMode); renderBoard();
+      toast('Sorted by ' + { edited:'last edited', created:'date created', title:'title' }[sortMode]);
+    } },
+  ...(view === 'trash' ? [{ label:'Empty the Trash', icon:'✕', cls:'del', fn: async () => {
+      const t = NOTES.filter(inTrash);
+      if (!t.length || !confirm(`Delete ${t.length} note${t.length === 1 ? '' : 's'} for good?`)) return;
+      for (const n of t) await purgeNote(n); renderBoard(); toast('Trash emptied');
+    } }] : []),
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3a — local-first, optional sync') },
 ]);
+function setView(v){
+  view = v; selected.clear();
+  localStorage.setItem('dsr-notes-view', view === 'trash' ? 'board' : view);
+  archiveBtnLabel(); renderBoard();
+  toast(v === 'trash' ? 'Trash' : v === 'archive' ? 'Archive' : 'Notes');
+}
 
 /* ---------- export / import ---------- */
 async function exportAll(){
   const notes = (await DB.all('notes')).filter(n => !n.deleted);
   const blobKeys = new Set();
-  notes.forEach(n => { if (n.audioId) blobKeys.add(n.audioId); if (n.imageId) blobKeys.add(n.imageId); });
+  notes.forEach(n => noteBlobKeys(n).forEach(k => blobKeys.add(k)));   // 3a: photos too
   const blobs = {};
   for (const k of blobKeys){
     const rec = await DB.get('blobs', k);
@@ -1291,12 +1853,13 @@ async function syncNow(quiet){
       const l = localById.get(s.id);
       if (l && (l.updated || 0) >= s.updated) continue;
       const full = await (await sapi('/note/' + s.id)).json();
-      for (const k of [full.audioId, full.imageId]){
+      for (const k of noteBlobKeys(full)){                     // 3a: photos too
         if (k && !(await DB.get('blobs', k))){
           try { await DB.put('blobs', { key: k, blob: await (await sapi('/blob/' + k)).blob() }); } catch(e){}
         }
       }
-      if (full.deleted) for (const k of [full.audioId, full.imageId]) if (k) await DB.del('blobs', k);
+      // 3a: a deleted note keeps its blobs while it's in the Trash; only a purged one drops them
+      if (full.purged){ const old = localById.get(full.id); if (old) for (const k of noteBlobKeys(old)) await DB.del('blobs', k); }
       await DB.put('notes', full);
       const i = NOTES.findIndex(n => n.id === full.id);
       if (i >= 0) NOTES[i] = full; else NOTES.push(full);
@@ -1307,8 +1870,7 @@ async function syncNow(quiet){
     for (const n of NOTES){
       const s = serverById.get(n.id);
       if (s && (s.updated || 0) >= (n.updated || 0)) continue;
-      for (const k of [n.audioId, n.imageId]){
-        if (!k) continue;
+      for (const k of noteBlobKeys(n)){                         // 3a: photos too
         const rec = await DB.get('blobs', k);
         if (rec) try { await sapi('/blob/' + k, { method:'PUT', body: rec.blob,
           headers: { 'Content-Type': rec.blob.type || 'application/octet-stream' } }); } catch(e){}
@@ -1361,16 +1923,38 @@ function openSyncSheet(){
 
 window.addEventListener('online', () => maybeAutoSync());
 
+/* 3a: switching apps / locking the phone saves straight away (2b waited 0.6 s, so the last edits could be lost) */
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden){
+    if (cur && cur.type === 'draw' && cur._drawTouched) await saveDrawing();
+    if (cur && curDirty){ clearTimeout(saveTimer); await commit(); }
+  } else checkReminders();
+});
+window.addEventListener('pagehide', () => { if (cur && curDirty){ clearTimeout(saveTimer); commit(); } });
+
 /* ============================================================
    BOOT
    ============================================================ */
 (async function init(){
   await loadNotes();
+  if (view === 'trash') view = 'board';
   archiveBtnLabel();
   renderBoard();
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
   if (SYNC.cfg.auto && SYNC.cfg.url && SYNC.cfg.token) syncNow(true);
+  // 3a: home-screen shortcuts (?new=list ...) and "Share to DSR Notes" from other apps (?title=&text=&url=)
+  const qs = new URLSearchParams(location.search);
+  const nt = qs.get('new');
+  if (qs.has('text') || qs.has('url') || qs.has('title')){
+    await openEditor('text');
+    cur.title = (qs.get('title') || '').slice(0, 200);
+    cur.body = [qs.get('text'), qs.get('url')].filter(Boolean).join('\n');
+    curDirty = true; await openEditor(cur);
+    curDirty = true; scheduleSave();
+  } else if (['text', 'list', 'voice', 'draw'].includes(nt)) openEditor(nt);
+  if (location.search) history.replaceState(null, '', location.pathname);
+  checkReminders();
 })();
 
 // back button / gesture closes the editor first
@@ -1378,6 +1962,8 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape'){
     const openSheet = $$('.sheet').find(s => !s.hidden);
     if (openSheet) openSheet.hidden = true;
+    else if (!$('#viewer').hidden) $('#viewer').hidden = true;
+    else if (selected.size){ selected.clear(); renderBoard(); }
     else if (!editor.hidden) closeEditor();
   }
 });

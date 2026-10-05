@@ -2,7 +2,7 @@
   "id": "/",
   "name": "DSR Notes",
   "short_name": "DSR Notes",
-  "description": "Local-first Keep-style notepad — text, checklists, voice memos and drawings.",
+  "description": "Local-first Keep-style notepad — text with formatting, checklists, voice memos, drawings and photos.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
@@ -10,7 +10,72 @@
   "background_color": "#0b0b0b",
   "theme_color": "#0b0b0b",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
-  ]
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New note",
+      "short_name": "Note",
+      "url": "./?new=text",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "New checklist",
+      "short_name": "Checklist",
+      "url": "./?new=list",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "New voice memo",
+      "short_name": "Voice",
+      "url": "./?new=voice",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "New drawing",
+      "short_name": "Drawing",
+      "url": "./?new=draw",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
