@@ -313,6 +313,14 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
   .reminput{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;outline:none;color:var(--ink);color-scheme:dark}
   .trashnote{font-size:11px;color:var(--danger);margin-top:6px}
   .fabwrap[hidden],.imgstrip[hidden]{display:none}
+
+  /* tiny text under the symbol buttons (the symbols alone didn't say what they do) */
+  button[data-l]{display:inline-flex !important;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
+  button[data-l]::after{content:attr(data-l);font-size:9px;font-weight:600;letter-spacing:.2px;opacity:.85;white-space:nowrap;font-family:system-ui,sans-serif}
+  .iconbtn[data-l]{width:auto;min-width:38px;height:44px;border-radius:10px;padding:0 3px}
+  .tools .tbtn[data-l]{width:auto;min-width:40px;height:44px;padding:0 4px}
+  .fmtbar button[data-l]{height:40px}
+  .selbar button[data-l]{height:44px;font-size:15px}
 </style>
 </head>
 <body>
@@ -320,15 +328,15 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">3b</span>
+    <span class="ver">3c</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
     <input id="q" type="search" placeholder="Search notes" autocomplete="off">
   </div>
-  <button class="iconbtn" id="gridBtn" title="Grid size - how many notes across and down">▦</button>
+  <button class="iconbtn" id="gridBtn" data-l="Grid" title="Grid size - how many notes across and down">▦</button>
   <button class="txtbtn" id="archiveBtn" title="Show the archived notes">Archive</button>
-  <button class="iconbtn" id="moreBtn" title="More">⋮</button>
+  <button class="iconbtn" id="moreBtn" data-l="Menu" title="More">⋮</button>
 </header>
 
 <main>
@@ -360,14 +368,14 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <!-- ================= EDITOR ================= -->
 <div class="editor" id="editor" hidden>
   <div class="etop">
-    <button class="iconbtn" id="eBack" title="Back">‹</button>
+    <button class="iconbtn" id="eBack" data-l="Back" title="Back">‹</button>
     <div class="grow"></div>
-    <button class="iconbtn" id="eMic" title="Voice typing - speak to add text" hidden>🎤</button>
-    <button class="iconbtn" id="eSpeak" title="Read aloud" hidden>🔊</button>
-    <button class="iconbtn" id="ePin" title="Pin">📌</button>
-    <button class="iconbtn" id="eColor" title="Colour">🎨</button>
+    <button class="iconbtn" id="eMic" data-l="Dictate" title="Voice typing - speak to add text" hidden>🎤</button>
+    <button class="iconbtn" id="eSpeak" data-l="Read" title="Read aloud" hidden>🔊</button>
+    <button class="iconbtn" id="ePin" data-l="Pin" title="Pin">📌</button>
+    <button class="iconbtn" id="eColor" data-l="Colour" title="Colour">🎨</button>
     <button class="txtbtn" id="eArchive" title="Archive this note">Archive</button>
-    <button class="iconbtn" id="eMenu" title="More">⋮</button>
+    <button class="iconbtn" id="eMenu" data-l="Menu" title="More">⋮</button>
   </div>
   <div class="ebody" id="ebody"><!-- filled per type --></div>
 </div>
@@ -390,7 +398,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
     <div class="lblrow" id="lblRow"></div>
     <div class="lblnew">
       <input id="lblNew" placeholder="Create new label" autocomplete="off">
-      <button class="iconbtn" id="lblAdd" style="color:var(--gold2)">＋</button>
+      <button class="iconbtn" id="lblAdd" data-l="Add" style="color:var(--gold2)">＋</button>
     </div>
   </div>
 </div>
@@ -403,7 +411,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
     <div class="syncfield"><label>Token</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input id="syncToken" type="password" placeholder="shared secret" autocomplete="off" style="flex:1">
-        <button id="syncEye" class="iconbtn" type="button" title="Show / hide the token">👁</button>
+        <button id="syncEye" data-l="Show" class="iconbtn" type="button" title="Show / hide the token">👁</button>
       </div></div>
     <label class="cktoggle" style="margin:14px 0 4px"><input type="checkbox" id="syncAuto"> Auto-sync (on launch, after edits, on reconnect)</label>
     <div id="syncStatus" class="rechint" style="margin:10px 0 14px">Not configured</div>
@@ -430,21 +438,21 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 
 <!-- 3a: multi-select bar (long-press a note) -->
 <div class="selbar" id="selBar" hidden>
-  <button id="sbClose" title="Done">✕</button>
+  <button id="sbClose" data-l="Done" title="Done">✕</button>
   <span class="cnt" id="sbCount">1 selected</span>
-  <button id="sbPin" title="Pin / unpin">📌</button>
-  <button id="sbColor" title="Colour">🎨</button>
-  <button id="sbLabel" title="Add a label">#</button>
-  <button id="sbArchive" title="Archive / unarchive">🗄</button>
-  <button id="sbRestore" title="Restore" hidden>↺</button>
-  <button id="sbDelete" title="Delete">🗑</button>
+  <button id="sbPin" data-l="Pin" title="Pin / unpin">📌</button>
+  <button id="sbColor" data-l="Colour" title="Colour">🎨</button>
+  <button id="sbLabel" data-l="Label" title="Add a label">#</button>
+  <button id="sbArchive" data-l="Archive" title="Archive / unarchive">🗄</button>
+  <button id="sbRestore" data-l="Restore" title="Restore" hidden>↺</button>
+  <button id="sbDelete" data-l="Delete" title="Delete">🗑</button>
 </div>
 
 <!-- 3a: photo viewer -->
 <div class="viewer" id="viewer" hidden>
   <div class="vtop">
-    <button class="iconbtn" id="vDel" title="Remove this photo from the note">🗑</button>
-    <button class="iconbtn" id="vClose" title="Close">✕</button>
+    <button class="iconbtn" id="vDel" data-l="Remove" title="Remove this photo from the note">🗑</button>
+    <button class="iconbtn" id="vClose" data-l="Close" title="Close">✕</button>
   </div>
   <div class="vimg"><img id="vImg" alt=""></div>
 </div>
@@ -1149,13 +1157,13 @@ function buildTextEditor(){
   ebody.innerHTML = `
     <input class="etitle" id="fTitle" placeholder="Title" value="${esc(cur.title)}">
     <div class="fmtbar" id="fmtBar">
-      <button data-f="b" title="Bold"><b>B</b></button>
-      <button data-f="i" title="Italic"><i>I</i></button>
-      <button data-f="s" title="Strikethrough"><s>S</s></button>
-      <button data-f="h" title="Heading">H</button>
-      <button data-f="ul" title="Bullet">•</button>
-      <button data-f="ck" title="Tick box">☐</button>
-      <button data-f="ln" title="Link">🔗</button>
+      <button data-f="b" data-l="Bold" title="Bold"><b>B</b></button>
+      <button data-f="i" data-l="Italic" title="Italic"><i>I</i></button>
+      <button data-f="s" data-l="Strike" title="Strikethrough"><s>S</s></button>
+      <button data-f="h" data-l="Heading" title="Heading">H</button>
+      <button data-f="ul" data-l="Bullet" title="Bullet">•</button>
+      <button data-f="ck" data-l="Tick" title="Tick box">☐</button>
+      <button data-f="ln" data-l="Link" title="Link">🔗</button>
       <button data-f="pv" id="pvBtn" title="Preview - see the formatting, tap ticks and links">👁 Preview</button>
     </div>
     <textarea class="etext" id="fBody" placeholder="Note…">${esc(cur.body)}</textarea>
@@ -1370,15 +1378,15 @@ async function buildDrawEditor(){
       <input class="etitle" id="fTitle" placeholder="Title" value="${esc(cur.title)}" style="margin:12px 16px 8px">
       <div class="canvashold"><canvas id="pad" width="${PAD_W}" height="${PAD_H}"></canvas></div>
       <div class="tools" id="tools">
-        <button class="tbtn" id="tPen" title="Pen">✎</button>
-        <button class="tbtn" id="tHi" title="Highlighter">🖍</button>
-        <button class="tbtn" id="tErase" title="Eraser">⌫</button>
+        <button class="tbtn" id="tPen" data-l="Pen" title="Pen">✎</button>
+        <button class="tbtn" id="tHi" data-l="Highlight" title="Highlighter">🖍</button>
+        <button class="tbtn" id="tErase" data-l="Eraser" title="Eraser">⌫</button>
         <input type="range" id="tSize" min="1" max="40" value="${penSize}">
         <span id="swatches" style="display:flex;gap:8px"></span>
-        <button class="tbtn" id="tPhoto" title="Add photo">🖼</button>
-        <button class="tbtn" id="tUndo" title="Undo">↺</button>
-        <button class="tbtn" id="tRedo" title="Redo">↻</button>
-        <button class="tbtn" id="tClear" title="Clear">🗑</button>
+        <button class="tbtn" id="tPhoto" data-l="Photo" title="Add photo">🖼</button>
+        <button class="tbtn" id="tUndo" data-l="Undo" title="Undo">↺</button>
+        <button class="tbtn" id="tRedo" data-l="Redo" title="Redo">↻</button>
+        <button class="tbtn" id="tClear" data-l="Clear" title="Clear">🗑</button>
       </div>
     </div>`;
   $('#fTitle').oninput = e => { cur.title = e.target.value; scheduleSave(); };
@@ -1769,7 +1777,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
       if (!t.length || !confirm(`Delete ${t.length} note${t.length === 1 ? '' : 's'} for good?`)) return;
       for (const n of t) await purgeNote(n); renderBoard(); toast('Trash emptied');
     } }] : []),
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3b — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3c — local-first, optional sync') },
 ]);
 function setView(v){
   view = v; selected.clear();
