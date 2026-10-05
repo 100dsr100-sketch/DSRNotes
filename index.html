@@ -320,7 +320,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">3a</span>
+    <span class="ver">3b</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
@@ -401,7 +401,10 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
     <div class="syncfield"><label>Sync URL</label>
       <input id="syncUrl" type="url" placeholder="https://dsr-notes-sync.you.workers.dev" autocomplete="off"></div>
     <div class="syncfield"><label>Token</label>
-      <input id="syncToken" type="password" placeholder="shared secret" autocomplete="off"></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="syncToken" type="password" placeholder="shared secret" autocomplete="off" style="flex:1">
+        <button id="syncEye" class="iconbtn" type="button" title="Show / hide the token">👁</button>
+      </div></div>
     <label class="cktoggle" style="margin:14px 0 4px"><input type="checkbox" id="syncAuto"> Auto-sync (on launch, after edits, on reconnect)</label>
     <div id="syncStatus" class="rechint" style="margin:10px 0 14px">Not configured</div>
     <div style="display:flex;gap:10px">
@@ -1766,7 +1769,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
       if (!t.length || !confirm(`Delete ${t.length} note${t.length === 1 ? '' : 's'} for good?`)) return;
       for (const n of t) await purgeNote(n); renderBoard(); toast('Trash emptied');
     } }] : []),
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3a — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3b — local-first, optional sync') },
 ]);
 function setView(v){
   view = v; selected.clear();
@@ -1812,6 +1815,7 @@ $('#importFile').addEventListener('change', async e => {
 /* ============================================================
    SYNC  (optional — Cloudflare Worker + KV, see /worker)
    ============================================================ */
+const SYNC_DEFAULT_URL = 'https://dsr-notes-sync.100dsr100.workers.dev';
 const SYNC = {
   get cfg(){ try { return JSON.parse(localStorage.getItem('dsr-notes-sync') || '{}'); } catch(e){ return {}; } },
   set cfg(v){ localStorage.setItem('dsr-notes-sync', JSON.stringify(v)); },
@@ -1900,7 +1904,12 @@ function updateSyncStatus(){
 
 function openSyncSheet(){
   const c = SYNC.cfg;
-  $('#syncUrl').value = c.url || '';
+  $('#syncUrl').value = c.url || SYNC_DEFAULT_URL;   // 3b: your sync address (not a secret) filled in
+  $('#syncToken').type = 'password'; $('#syncEye').textContent = '👁';
+  $('#syncEye').onclick = () => {                      // 3b: see the token to copy it to another device
+    const t = $('#syncToken'), show = t.type === 'password';
+    t.type = show ? 'text' : 'password'; $('#syncEye').textContent = show ? '🙈' : '👁';
+  };
   $('#syncToken').value = c.token || '';
   $('#syncAuto').checked = !!c.auto;
   updateSyncStatus();
