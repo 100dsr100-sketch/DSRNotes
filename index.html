@@ -321,6 +321,30 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
   .tools .tbtn[data-l]{width:auto;min-width:40px;height:44px;padding:0 4px}
   .fmtbar button[data-l]{height:40px}
   .selbar button[data-l]{height:44px;font-size:15px}
+
+  /* voice typing bar (DSR Dictation 3a engine) */
+  #vtBar{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 8px);z-index:80;max-width:640px;margin:0 auto;
+    background:#000;border:1px solid var(--gold);border-radius:14px;padding:6px 8px 8px;box-shadow:0 8px 24px rgba(0,0,0,.65)}
+  #vtBar[hidden]{display:none}
+  #vtBar .vtTop{display:flex;align-items:center;gap:6px}
+  #vtBar .vtDot{width:10px;height:10px;border-radius:50%;background:#c0563e;flex:0 0 auto;animation:vtPulse 1.2s infinite}
+  @keyframes vtPulse{50%{opacity:.3}}
+  #vtBar .vtMsg{flex:1;min-width:0;color:var(--gold2);font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #vtBar button{color:var(--gold2);background:none;border:1px solid #2a2a2a;border-radius:10px;min-width:40px;height:42px;font-size:16px;
+    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0 4px}
+  #vtBar button[data-l]::after{content:attr(data-l);font-size:9px;font-weight:600;opacity:.85;white-space:nowrap;font-family:system-ui,sans-serif}
+  #vtBar .vtLive{color:var(--ink);opacity:.75;font-style:italic;font-size:15px;min-height:1.3em;margin:4px 2px 0}
+  #vtBar .vtProg{height:5px;background:#222;border-radius:3px;margin-top:6px;overflow:hidden}
+  #vtBar .vtProg i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+  #vtBar .vtKeys{display:flex;gap:4px;margin-top:6px}
+  #vtBar .vtKeys button{flex:1 1 0;min-width:0}
+  .vtSheet{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+  .vtSheet .vtPanel{background:#0d0d0d;border:1px solid var(--gold);border-bottom:none;border-radius:16px 16px 0 0;width:100%;max-width:560px;padding:10px 14px calc(env(safe-area-inset-bottom) + 12px)}
+  .vtSheet h4{margin:4px 0 6px;color:var(--gold2);font-size:15px}
+  .vtSheet button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #222;color:var(--ink);padding:11px 4px;font:inherit}
+  .vtSheet button b{color:var(--gold2)}
+  .vtSheet button small{display:block;color:var(--dim);font-size:12px;margin-top:2px;line-height:1.35}
+  .vtSheet .vtCancel{text-align:center;color:var(--dim);border-bottom:none}
 </style>
 </head>
 <body>
@@ -328,7 +352,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">3c</span>
+    <span class="ver">3d</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
@@ -467,6 +491,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <input type="file" id="photoFile" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
 
+<script src="dsr-speech.js?v=3a"></script>
 <script>
 "use strict";
 /* ============================================================
@@ -1055,53 +1080,179 @@ $('#vDel').onclick = async () => {
   scheduleSave(); renderImgStrip(); toast('Photo removed');
 }
 
-/* ---- v1f: voice typing (text notes + lists) ----
-   One phrase at a time (continuous=false, restarted while on): Android Chrome's continuous mode repeats
-   earlier words in later results. Text note: the phrase goes in at the cursor. List: each phrase is a new item. */
-let dict = null;   // { sr, on }
+/* ---- voice typing (text notes + lists) - 3d: DSR Dictation 3a's engine (dsr-speech.js, shared) ----
+   Google (fast; the audio goes to Google) or Private (on this phone - nothing leaves it; Moonshine shows
+   words while you talk). Live words, spoken commands (full stop, comma, new line, new paragraph, question
+   mark, scratch that, delete last word, replace X with Y, stop dictation…), automatic capitals, um/uh left
+   out, a punctuation bar, screen kept awake. Text note: words go in at the cursor. List: each phrase is an item. */
+const VT_KEY = 'dsr-voice';
+const VT = Object.assign({ engine: 'google', model: DsrSpeech.DEFAULT_MODEL, asked: false }, (() => { try { return JSON.parse(localStorage.getItem(VT_KEY) || '{}'); } catch(e){ return {}; } })());
+let vt = null;   // { sess, kind, last, lastRange, lastItem, caps, wake }
+const vtSave = () => { try { localStorage.setItem(VT_KEY, JSON.stringify(VT)); } catch(e){} };
+const vtEngineName = () => VT.engine === 'private' ? DsrSpeech.modelInfo(VT.model).name + ' (private)' : 'Google';
+document.body.insertAdjacentHTML('beforeend', `
+<div id="vtBar" hidden>
+  <div class="vtTop"><span class="vtDot"></span><span class="vtMsg" id="vtMsg">Listening…</span>
+    <button type="button" id="vtEng" data-l="Engine">⚙</button><button type="button" id="vtHelp" data-l="Say">?</button><button type="button" id="vtStop" data-l="Stop">■</button></div>
+  <div class="vtLive" id="vtLive"></div>
+  <div class="vtProg" id="vtProg" hidden><i id="vtProgBar"></i></div>
+  <div class="vtKeys">
+    <button type="button" data-k="full stop" data-l="Full stop">.</button><button type="button" data-k="comma" data-l="Comma">,</button>
+    <button type="button" data-k="question mark" data-l="Question">?</button><button type="button" data-k="new line" data-l="Line">↵</button>
+    <button type="button" data-k="word" data-l="Del word">⌫</button><button type="button" data-k="scratch" data-l="Scratch">↶</button>
+  </div>
+</div>`);
+function vtMsg(t){ $('#vtMsg').textContent = t || ''; }
+function vtLive(t){ $('#vtLive').textContent = t || ''; }
+function vtChoose(then){
+  const sh = document.createElement('div');
+  sh.className = 'vtSheet';
+  const row = (k, title, sub, on) => `<button type="button" data-e="${k}"><b>${title}${on ? ' ✓' : ''}</b><small>${sub}</small></button>`;
+  sh.innerHTML = `<div class="vtPanel"><h4>Voice typing</h4>
+    ${row('google', 'Google', 'Fast and accurate. Your voice is sent to Google to be turned into text.', VT.engine === 'google')}
+    ${row('tiny', 'Private, on this phone', 'Nothing leaves the phone. Words appear while you talk, about a second behind. One-off download of ~28 MB.', VT.engine === 'private' && /tiny/.test(VT.model))}
+    ${row('base', 'Private, more accurate', 'Same, with a bigger model: better words, a little slower. One-off ~63 MB.', VT.engine === 'private' && /moonshine-base/.test(VT.model))}
+    <button type="button" data-e="x" class="vtCancel">Cancel</button></div>`;
+  document.body.appendChild(sh);
+  sh.addEventListener('click', e => {
+    const b = e.target.closest('[data-e]');
+    if (!b && e.target !== sh) return;
+    sh.remove();
+    if (!b || b.dataset.e === 'x') return;
+    if (b.dataset.e === 'google') VT.engine = 'google';
+    else { VT.engine = 'private'; VT.model = b.dataset.e === 'base' ? 'onnx-community/moonshine-base-ONNX' : DsrSpeech.DEFAULT_MODEL; }
+    VT.asked = true; vtSave();
+    toast('Voice typing: ' + vtEngineName());
+    if (then) then();
+  });
+}
 function stopDictation(){
-  if (!dict) return;
-  dict.on = false; try { dict.sr.abort(); } catch(e){}
-  dict = null; $('#eMic').classList.remove('live');
+  if (!vt) return;
+  const v = vt; vt = null;
+  try { v.sess && v.sess.stop(); } catch(e){}
+  try { v.wake && v.wake.release(); } catch(e){}
+  $('#vtBar').hidden = true; vtLive(''); $('#vtProg').hidden = true;
+  $('#eMic').classList.remove('live');
 }
 function startDictation(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){ toast("Voice typing isn't supported in this browser"); return; }
-  stopSpeaking();
-  const sr = new SR(); sr.continuous = false; sr.interimResults = false; sr.maxAlternatives = 1;
-  sr.lang = navigator.language || 'en-GB';
-  dict = { sr, on: true };
-  sr.onresult = e => {
-    const t = [...e.results].filter(r => r.isFinal).map(r => r[0].transcript).join(' ').trim();
-    if (t && cur) addDictated(t);
-  };
-  sr.onerror = e => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ toast('Microphone blocked'); stopDictation(); }
-  };
-  sr.onend = () => { if (dict && dict.sr === sr && dict.on){ try { sr.start(); } catch(e){ stopDictation(); } } };
-  try { sr.start(); } catch(e){ stopDictation(); return; }
+  if (!cur || !(cur.type === 'text' || cur.type === 'list')) return;
+  if (false && !VT.asked){ vtChoose(startDictation); return; }
+  if (VT.engine === 'google' && !DsrSpeech.hasGoogle){ VT.engine = 'private'; vtSave(); toast("Google voice typing isn't available here - using Private"); }
+  stopDictation(); stopSpeaking();
+  const v = vt = { kind: cur.type, note: cur, last: '', lastRange: null, lastItem: null, caps: false, wake: null };
+  $('#vtBar').hidden = false; vtLive(''); vtMsg('Starting (' + vtEngineName() + ')…');
   $('#eMic').classList.add('live');
-  toast(cur && cur.type === 'list' ? 'Listening — each phrase becomes a list item' : 'Listening — speak, tap 🎤 to stop');
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w => { if (vt === v) v.wake = w; else w.release(); }, () => {}); } catch(e){}
+  if (typeof LOCK !== 'undefined' && LOCK.lock && !LOCK._vt){ const l = LOCK.lock; LOCK.lock = function(){ stopDictation(); return l.apply(this, arguments); }; LOCK._vt = 1; }
+  v.sess = DsrSpeech.start({
+    engine: VT.engine, model: VT.model, lang: navigator.language || 'en-AU', interim: true, continuous: true,
+    onInterim: t => { if (vt === v) vtLive(t); },
+    onFinal: t => vtCommit(v, t),
+    onStatus: t => { if (vt === v) vtMsg(t); },
+    onProgress: (p, label, amt) => {
+      if (vt !== v) return;
+      $('#vtProg').hidden = p == null;
+      if (p != null){ $('#vtProgBar').style.width = p + '%'; vtMsg(label + (amt ? ' (' + amt + ')' : '')); }
+    },
+    onError: (m, fatal) => { toast(m); if (fatal && vt === v) stopDictation(); },
+    onEnd: () => { if (vt === v) stopDictation(); }
+  });
 }
-function addDictated(t){
-  if (cur.type === 'list'){
-    const nw = $('#ckNew'); if (nw && nw.value.trim()){ cur.items.push({ text: nw.value.trim(), done:false }); nw.value = ''; }
-    cur.items.push({ text: t.charAt(0).toUpperCase() + t.slice(1), done:false });
-    renderCkList(); scheduleSave();
-    return;
-  }
-  const ta = $('#fBody'); if (!ta) return;
-  const a = ta.selectionStart ?? ta.value.length, b = ta.selectionEnd ?? a;
-  const before = ta.value.slice(0, a), after = ta.value.slice(b);
-  const sentenceStart = !before.trim() || /[.!?\n]\s*$/.test(before);
-  let ins = sentenceStart ? t.charAt(0).toUpperCase() + t.slice(1) : t;
-  if (before && !/\s$/.test(before)) ins = ' ' + ins;
-  if (after && !/^\s/.test(after)) ins += ' ';
-  ta.value = before + ins + after;
-  const pos = (before + ins).length; ta.selectionStart = ta.selectionEnd = pos;
+/* text before the insertion point (the textarea keeps its cursor while the bar's buttons are tapped) */
+function vtTa(v){ return v.note === cur && v.kind === 'text' ? $('#fBody') : null; }
+function vtCtx(v){
+  if (v.kind === 'list') return v.lastItem ? v.lastItem.text : '';
+  const ta = vtTa(v); if (!ta) return '';
+  return ta.value.slice(0, ta.selectionStart ?? ta.value.length);
+}
+function vtCommit(v, raw, over){
+  if (!v || v.note !== cur) return;
+  const r = DsrSpeech.process(raw, vtCtx(v), Object.assign({ caps: true, fillers: true, capsLock: v.caps, bullet: '- ',
+    has: s => v.kind === 'text' && !!vtTa(v) && vtWordRe(s, 'i').test(vtTa(v).value) }, over || {}));
+  if (r.cmd) return vtCmd(v, r.cmd, r.arg);
+  if (!r.text) return;
+  if (v.kind === 'list') return vtItem(v, r.text);
+  const ta = vtTa(v); if (!ta) return;
+  let a = ta.selectionStart ?? ta.value.length; const b = ta.selectionEnd ?? a;
+  a = Math.max(0, a - (r.eat || 0));
+  let ins = r.text;
+  const after = ta.value.slice(b);
+  if (after && /^[A-Za-z0-9]/.test(after) && !/\s$/.test(ins)) ins += ' ';
+  ta.value = ta.value.slice(0, a) + ins + after;
+  const pos = a + ins.length;
+  try { ta.setSelectionRange(pos, pos); } catch(e){}
+  v.last = ins; v.lastRange = [a, pos];
   cur.body = ta.value; autoGrow(ta); scheduleSave();
 }
-$('#eMic').onclick = () => dict ? stopDictation() : startDictation();
+/* list: each phrase is a new item (a spoken mark right after - "question mark" - joins the item before) */
+function vtItem(v, text){
+  const t = text.replace(/^\s+/, '');
+  if (/^[.,?!:;…]/.test(t) && v.lastItem && v.lastItem.text){ v.lastItem.text = v.lastItem.text.replace(/[.]$/, '') + t.trim(); renderCkList(); scheduleSave(); return; }
+  const nw = $('#ckNew'); if (nw && nw.value.trim()){ cur.items.push({ text: nw.value.trim(), done: false }); nw.value = ''; }
+  const item = { text: t.replace(/\s*\n+\s*/g, ' ').replace(/^- /, '').replace(/\.$/, '').trim(), done: false };
+  if (!item.text) return;
+  item.text = item.text.charAt(0).toUpperCase() + item.text.slice(1);
+  cur.items.push(item); v.lastItem = item;
+  renderCkList(); scheduleSave();
+}
+function vtWordRe(s, f){ return new RegExp('(^|[^A-Za-z0-9])(' + s.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s,]+') + ')(?![A-Za-z0-9])', f); }
+function vtCmd(v, c, a){
+  const ta = vtTa(v);
+  if (c === 'stop'){ stopDictation(); toast('Voice typing stopped'); return; }
+  if (c === 'capsOn' || c === 'capsOff'){ v.caps = c === 'capsOn'; toast(v.caps ? 'CAPS on' : 'CAPS off'); return; }
+  if (v.kind === 'list'){
+    if (!v.lastItem) return;
+    if (c === 'scratch' || c === 'deleteSentence' || c === 'deleteLine' || c === 'undo'){
+      const i = cur.items.indexOf(v.lastItem); if (i >= 0) cur.items.splice(i, 1);
+      v.lastItem = cur.items[cur.items.length - 1] || null; toast('Removed the last item');
+    } else if (c === 'deleteWord'){
+      v.lastItem.text = v.lastItem.text.replace(/\s*\S+\s*$/, '');
+      if (!v.lastItem.text){ const i = cur.items.indexOf(v.lastItem); if (i >= 0) cur.items.splice(i, 1); v.lastItem = cur.items[cur.items.length - 1] || null; }
+    }
+    else return;
+    renderCkList(); scheduleSave(); return;
+  }
+  if (!ta) return;
+  const at = ta.selectionStart ?? ta.value.length, before = ta.value.slice(0, at), after = ta.value.slice(at);
+  let nb = before;
+  if (c === 'scratch' || c === 'undo'){
+    if (!v.last || !v.lastRange || ta.value.slice(v.lastRange[0], v.lastRange[1]) !== v.last) return;
+    ta.value = ta.value.slice(0, v.lastRange[0]) + ta.value.slice(v.lastRange[1]);
+    try { ta.setSelectionRange(v.lastRange[0], v.lastRange[0]); } catch(e){}
+    v.last = ''; v.lastRange = null; toast('Removed the last bit');
+    cur.body = ta.value; autoGrow(ta); scheduleSave(); return;
+  }
+  if (c === 'deleteWord') nb = before.replace(/\s*\S+\s*$/, '');
+  else if (c === 'deleteSentence') nb = before.replace(/[^.!?\n]*[.!?]?\s*$/, '');
+  else if (c === 'deleteLine') nb = before.replace(/[^\n]*\n?$/, '');
+  else if (c === 'joinLines') nb = before.replace(/([^\n])\n([^\n])/g, '$1 $2');
+  else if (c === 'replace'){
+    const re = vtWordRe(a.from, 'gi'); let m, last = null;
+    while ((m = re.exec(ta.value))){ last = m; if (m.index === re.lastIndex) re.lastIndex++; }
+    if (!last) return;
+    const p = last.index + last[1].length, old = last[2], rep = /^[A-Z]/.test(old) ? a.to.charAt(0).toUpperCase() + a.to.slice(1) : a.to;
+    ta.value = ta.value.slice(0, p) + rep + ta.value.slice(p + old.length);
+    toast('Replaced “' + old + '”'); cur.body = ta.value; autoGrow(ta); scheduleSave(); return;
+  }
+  else if (c === 'readBack'){ const s = (before.match(/[^.!?\n]*[.!?]*\s*$/) || [''])[0].trim(); if (s && 'speechSynthesis' in window){ const u = new SpeechSynthesisUtterance(s); u.lang = navigator.language || 'en-AU'; stopDictation(); u.onend = () => startDictation(); speechSynthesis.speak(u); } return; }
+  else return;
+  ta.value = nb + after;
+  try { ta.setSelectionRange(nb.length, nb.length); } catch(e){}
+  v.last = ''; v.lastRange = null;
+  cur.body = ta.value; autoGrow(ta); scheduleSave();
+}
+$('#vtBar').addEventListener('pointerdown', e => { if (e.target.closest('button')) e.preventDefault(); });   // keep the note's cursor + keyboard
+$('#vtBar').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || !vt) return;
+  if (b.id === 'vtStop') stopDictation();
+  else if (b.id === 'vtHelp') toast('Say: full stop · comma · question mark · new line · new paragraph · scratch that · delete last word · replace X with Y · stop dictation');
+  else if (b.id === 'vtEng'){ stopDictation(); vtChoose(startDictation); }
+  else if (b.dataset.k === 'word') vtCmd(vt, 'deleteWord');
+  else if (b.dataset.k === 'scratch') vtCmd(vt, 'scratch');
+  else if (b.dataset.k) vtCommit(vt, b.dataset.k, { punct: true });
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopDictation(); });   // no listening in the background
+$('#eMic').onclick = () => vt ? stopDictation() : startDictation();
 
 /* ---- v1f: read aloud (text notes + lists) ---- */
 function stopSpeaking(){ try { speechSynthesis.cancel(); } catch(e){} $('#eSpeak').classList.remove('live'); }
@@ -1777,7 +1928,7 @@ $('#moreBtn').onclick = () => openMenuSheet([
       if (!t.length || !confirm(`Delete ${t.length} note${t.length === 1 ? '' : 's'} for good?`)) return;
       for (const n of t) await purgeNote(n); renderBoard(); toast('Trash emptied');
     } }] : []),
-  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3c — local-first, optional sync') },
+  { label:'About DSR Notes', icon:'ⓘ', fn: () => toast('DSR Notes 3d — local-first, optional sync') },
 ]);
 function setView(v){
   view = v; selected.clear();
