@@ -345,6 +345,23 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
   .vtSheet button b{color:var(--gold2)}
   .vtSheet button small{display:block;color:var(--dim);font-size:12px;margin-top:2px;line-height:1.35}
   .vtSheet .vtCancel{text-align:center;color:var(--dim);border-bottom:none}
+  /* 3e: handwriting pad and photo-to-text */
+  .hwSheet{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+  .hwPanel{background:#0d0d0d;border:1px solid var(--gold);border-bottom:none;border-radius:16px 16px 0 0;width:100%;max-width:640px;padding:10px 12px calc(env(safe-area-inset-bottom) + 10px)}
+  .hwPanel h4{margin:2px 0 8px;color:var(--gold2);font-size:15px;display:flex;align-items:center;gap:8px}
+  .hwPanel h4 select{margin-left:auto;background:#151515;color:var(--ink);border:1px solid #3a3020;border-radius:8px;padding:4px 6px;font:inherit;font-size:13px}
+  .hwPad{width:100%;height:220px;background:#fffdf5;border-radius:10px;touch-action:none;display:block}
+  .hwCands{display:flex;gap:6px;overflow-x:auto;min-height:40px;margin:8px 0 2px}
+  .hwCands button{flex:0 0 auto;background:#1a1609;border:1px solid var(--gold);color:var(--gold2);border-radius:999px;padding:7px 14px;font:inherit;font-size:16px}
+  .hwCands button:first-child{background:var(--gold);color:#000}
+  .hwCands .hint{color:var(--dim);font-size:13px;align-self:center}
+  .hwRow{display:flex;gap:6px;margin-top:6px}
+  .hwRow button{flex:1;background:#151515;border:1px solid #3a3020;color:var(--ink);border-radius:10px;padding:10px 4px;font:inherit;font-size:14px}
+  .hwRow button.go{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700}
+  .ocrImg{max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto 8px}
+  .ocrTxt{width:100%;min-height:140px;background:#151515;color:var(--ink);border:1px solid #3a3020;border-radius:10px;padding:10px;font:inherit;font-size:15px;box-sizing:border-box}
+  .ocrBar{height:6px;background:#222;border-radius:3px;overflow:hidden;margin:6px 0}
+  .ocrBar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s}
 </style>
 </head>
 <body>
@@ -352,7 +369,7 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
 <header>
   <div class="brand" title="DSR Notes">
     <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="#e8c86e" stroke-width="1.7"/><path d="M7 8.5h10M7 12h10M7 15.5h6" stroke="#e8c86e" stroke-width="1.7" stroke-linecap="round"/><circle cx="17" cy="6" r="2.6" fill="#d4af37"/></svg>
-    <span class="ver">3d</span>
+    <span class="ver">3e</span>
   </div>
   <div class="search">
     <span style="color:var(--dim)">⌕</span>
@@ -395,6 +412,8 @@ window.DSR_MOVE = { name: "DSR Notes", to: "https://dsr-notes.pages.dev/", ls: [
     <button class="iconbtn" id="eBack" data-l="Back" title="Back">‹</button>
     <div class="grow"></div>
     <button class="iconbtn" id="eMic" data-l="Dictate" title="Voice typing - speak to add text" hidden>🎤</button>
+    <button class="iconbtn" id="eWrite" data-l="Write" title="Handwriting - write with your finger, it becomes text" hidden>✍️</button>
+    <button class="iconbtn" id="eScan" data-l="Scan" title="Text from a photo - take or pick a picture" hidden>📷</button>
     <button class="iconbtn" id="eSpeak" data-l="Read" title="Read aloud" hidden>🔊</button>
     <button class="iconbtn" id="ePin" data-l="Pin" title="Pin">📌</button>
     <button class="iconbtn" id="eColor" data-l="Colour" title="Colour">🎨</button>
@@ -992,7 +1011,7 @@ async function openEditor(noteOrType){
   $('#ePin').style.color = cur.pinned ? 'var(--gold2)' : '';
   $('#ePin').style.opacity = cur.pinned ? '1' : '.5';
   $('#eArchive').textContent = cur.archived ? 'Unarchive' : 'Archive';
-  $('#eMic').hidden = $('#eSpeak').hidden = !(cur.type === 'text' || cur.type === 'list');
+  $('#eMic').hidden = $('#eSpeak').hidden = $('#eWrite').hidden = $('#eScan').hidden = !(cur.type === 'text' || cur.type === 'list');
   applyEditorTint();
 
   editor.hidden = false;
@@ -2135,6 +2154,139 @@ window.addEventListener('keydown', e => {
     else if (!editor.hidden) closeEditor();
   }
 });
+</script>
+<script>
+/* ============ 3e: handwriting and photo-to-text (like Dictate, the result goes in at the cursor) ============ */
+/* put text into the open note: at the cursor of a text note, or as new items of a checklist (one per line) */
+function noteInsertText(text){
+  text = String(text || '').trim(); if (!text || !cur) return;
+  if (cur.type === 'list') {
+    const nw = $('#ckNew'); if (nw && nw.value.trim()) { cur.items.push({ text: nw.value.trim(), done: false }); nw.value = ''; }
+    text.split(/\n+/).map(t => t.replace(/^[-•*]\s*/, '').trim()).filter(Boolean).forEach(t => cur.items.push({ text: t, done: false }));
+    renderCkList(); scheduleSave(); return;
+  }
+  const ta = $('#fBody'); if (!ta) return;
+  const a = ta.selectionStart ?? ta.value.length, b = ta.selectionEnd ?? a;
+  const before = ta.value.slice(0, a), after = ta.value.slice(b);
+  const pre = before && !/[\s\n]$/.test(before) ? ' ' : '';
+  const ins = pre + text + (after && !/^[\s\n.,!?]/.test(after) ? ' ' : '');
+  ta.value = before + ins + after;
+  const pos = a + ins.length; try { ta.setSelectionRange(pos, pos); } catch(e){}
+  cur.body = ta.value; autoGrow(ta); scheduleSave();
+}
+const HW_LANGS = [['en', 'English'], ['hi', 'Hindi'], ['it', 'Italian']];
+function hwLang(){ try { return localStorage.getItem('dsr-notes-hw') || 'en'; } catch(e){ return 'en'; } }
+
+/* ---- Write: finger handwriting -> text (Google's free handwriting recogniser, the one Gboard's web demo uses) ---- */
+function openHandwriting(){
+  const sh = document.createElement('div'); sh.className = 'hwSheet';
+  sh.innerHTML = `<div class="hwPanel"><h4>✍️ Write with your finger <select id="hwL">${HW_LANGS.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></h4>
+    <canvas class="hwPad" id="hwPad"></canvas>
+    <div class="hwCands" id="hwCands"><span class="hint">Write a word or a few - tap the best guess to add it.</span></div>
+    <div class="hwRow"><button type="button" id="hwUndo">↶ Undo</button><button type="button" id="hwClear">Clear</button><button type="button" id="hwSpace">Space</button><button type="button" id="hwLine">↵ Line</button><button type="button" class="go" id="hwDone">Done</button></div></div>`;
+  document.body.appendChild(sh);
+  const cv = sh.querySelector('#hwPad'), ctx = cv.getContext('2d'), sel = sh.querySelector('#hwL');
+  sel.value = hwLang();
+  sel.onchange = () => { try { localStorage.setItem('dsr-notes-hw', sel.value); } catch(e){} recog(); };
+  const dpr = window.devicePixelRatio || 1;
+  const size = () => { const r = cv.getBoundingClientRect(); cv.width = r.width * dpr; cv.height = r.height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); redraw(); };
+  let strokes = [], curS = null, t0 = 0, timer = 0, seq = 0;
+  function redraw(){
+    const r = cv.getBoundingClientRect(); ctx.clearRect(0, 0, r.width, r.height);
+    ctx.strokeStyle = '#d9cfa8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(10, r.height * .72); ctx.lineTo(r.width - 10, r.height * .72); ctx.stroke();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3.2; ctx.lineCap = ctx.lineJoin = 'round';
+    for (const s of strokes) { ctx.beginPath(); s[0].forEach((x, i) => i ? ctx.lineTo(x, s[1][i]) : ctx.moveTo(x, s[1][i])); ctx.stroke(); }
+  }
+  cv.addEventListener('pointerdown', e => {
+    e.preventDefault(); cv.setPointerCapture(e.pointerId); clearTimeout(timer);
+    if (!strokes.length) t0 = Date.now();
+    const r = cv.getBoundingClientRect(); curS = [[e.clientX - r.left], [e.clientY - r.top], [Date.now() - t0]]; strokes.push(curS);
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!curS) return; const r = cv.getBoundingClientRect();
+    const pts = e.getCoalescedEvents ? e.getCoalescedEvents() : []; for (const p of (pts.length ? pts : [e])) { curS[0].push(p.clientX - r.left); curS[1].push(p.clientY - r.top); curS[2].push(Date.now() - t0); }
+    redraw();
+  });
+  const up = () => { if (!curS) return; curS = null; clearTimeout(timer); timer = setTimeout(recog, 450); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  const cands = sh.querySelector('#hwCands');
+  async function recog(){
+    if (!strokes.length) { cands.innerHTML = '<span class="hint">Write a word or a few - tap the best guess to add it.</span>'; return; }
+    const my = ++seq, r = cv.getBoundingClientRect();
+    try {
+      const res = await fetch('https://inputtools.google.com/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ options: 'enable_pre_space', requests: [{ writing_guide: { writing_area_width: Math.round(r.width), writing_area_height: Math.round(r.height) },
+          ink: strokes, language: sel.value }] }) });
+      const j = await res.json();
+      if (my !== seq) return;
+      const list = j[0] === 'SUCCESS' && j[1] && j[1][0] ? j[1][0][1] : [];
+      cands.innerHTML = '';
+      if (!list.length) { cands.innerHTML = '<span class="hint">Couldn\'t read that - try again a little bigger.</span>'; return; }
+      list.slice(0, 6).forEach(w => { const b = document.createElement('button'); b.type = 'button'; b.textContent = w; b.onclick = () => take(w); cands.appendChild(b); });
+    } catch (e) { if (my === seq) cands.innerHTML = '<span class="hint">Handwriting needs the internet.</span>'; }
+  }
+  function take(w){ noteInsertText(w); strokes = []; redraw(); cands.innerHTML = '<span class="hint">Added. Keep writing, or tap Done.</span>'; }
+  sh.querySelector('#hwUndo').onclick = () => { strokes.pop(); redraw(); clearTimeout(timer); timer = setTimeout(recog, 200); };
+  sh.querySelector('#hwClear').onclick = () => { strokes = []; redraw(); recog(); };
+  sh.querySelector('#hwSpace').onclick = () => { const b = cands.querySelector('button'); if (b) take(b.textContent); };
+  sh.querySelector('#hwLine').onclick = () => { const b = cands.querySelector('button'); if (b) take(b.textContent);
+    if (cur.type === 'text') { const ta = $('#fBody'); if (ta) { const a = ta.selectionStart ?? ta.value.length; ta.value = ta.value.slice(0, a) + '\n' + ta.value.slice(a); try { ta.setSelectionRange(a + 1, a + 1); } catch(e){} cur.body = ta.value; scheduleSave(); } } };
+  const close = () => { const b = strokes.length && cands.querySelector('button'); if (b) take(b.textContent); sh.remove(); };
+  sh.querySelector('#hwDone').onclick = close;
+  sh.addEventListener('click', e => { if (e.target === sh) close(); });
+  requestAnimationFrame(size);
+}
+
+/* ---- Scan: text from a photo (Tesseract, runs on the phone; first use downloads the reader + language, then it works offline) ---- */
+const OCR_LANG = { en: 'eng', hi: 'hin', it: 'ita' };
+let ocrLib = null;
+function loadOcr(){
+  if (ocrLib) return ocrLib;
+  ocrLib = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    sc.onload = () => res(window.Tesseract); sc.onerror = () => { ocrLib = null; rej(new Error('Couldn\'t load the text reader - check the internet')); }; document.head.appendChild(sc); });
+  return ocrLib;
+}
+function openScan(){
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) scanImage(f); };
+  inp.click();
+}
+async function scanImage(file){
+  const sh = document.createElement('div'); sh.className = 'hwSheet';
+  const url = URL.createObjectURL(file);
+  sh.innerHTML = `<div class="hwPanel"><h4>📷 Text from the photo <select id="ocL">${HW_LANGS.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></h4>
+    <img class="ocrImg" src="${url}"><div id="ocMsg" style="color:var(--dim);font-size:13px">Reading the words…</div><div class="ocrBar"><i id="ocBar"></i></div>
+    <textarea class="ocrTxt" id="ocTxt" placeholder="The words from the photo appear here - fix anything before adding."></textarea>
+    <div class="hwRow"><button type="button" id="ocAgain">Read again</button><button type="button" id="ocCancel">Cancel</button><button type="button" class="go" id="ocAdd">Add to note</button></div></div>`;
+  document.body.appendChild(sh);
+  const sel = sh.querySelector('#ocL'), msg = sh.querySelector('#ocMsg'), bar = sh.querySelector('#ocBar'), ta = sh.querySelector('#ocTxt');
+  sel.value = hwLang();
+  const close = () => { URL.revokeObjectURL(url); sh.remove(); };
+  sh.querySelector('#ocCancel').onclick = close;
+  sh.querySelector('#ocAdd').onclick = () => { noteInsertText(ta.value); close(); toast('Added the text from the photo'); };
+  async function run(){
+    msg.textContent = 'Reading the words…'; bar.style.width = '3%';
+    try {
+      const T = await loadOcr();
+      // big photos are scaled down first (faster, and the reader doesn't need more)
+      const img = await createImageBitmap(file); const k = Math.min(1, 2200 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const langs = sel.value === 'en' ? 'eng' : OCR_LANG[sel.value] + '+eng';
+      const out = await T.recognize(c, langs, { logger: m => { if (m.status === 'recognizing text') { bar.style.width = Math.round(10 + m.progress * 90) + '%'; msg.textContent = 'Reading the words… ' + Math.round(m.progress * 100) + '%'; }
+        else if (/loading/.test(m.status)) msg.textContent = 'Getting the ' + (HW_LANGS.find(x => x[0] === sel.value) || ['', 'English'])[1] + ' reader ready (first time only)…'; } });
+      const text = (out.data.text || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      ta.value = text; bar.style.width = '100%';
+      msg.textContent = text ? 'Done - check it, then Add to note.' : 'No words found - try a clearer, closer photo.';
+    } catch (e) { msg.textContent = e.message || 'Couldn\'t read the photo'; }
+  }
+  sh.querySelector('#ocAgain').onclick = run;
+  sel.onchange = () => { try { localStorage.setItem('dsr-notes-hw', sel.value); } catch(e){} run(); };
+  run();
+}
+$('#eWrite').onclick = openHandwriting;
+$('#eScan').onclick = openScan;
 </script>
 </body>
 </html>

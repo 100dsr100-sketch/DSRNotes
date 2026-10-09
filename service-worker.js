@@ -3,7 +3,7 @@
    changed); the saved copy is the offline fallback. vendor/ (the on-device speech runtime, ~22 MB) is
    cache-first: it only changes with a new library version, which gets a new VENDOR name - network-first
    would re-save 22 MB on every visit. Cross-origin traffic (sync, speech models) is never cached here. */
-const CACHE = 'dsr-notes-v3d';
+const CACHE = 'dsr-notes-v3e';
 const VENDOR = 'dsr-notes-vendor-tjs381';
 const OWN = 'dsr-notes-';   // only ever delete THIS app's old caches (never 'transformers-cache' - the speech models)
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './dsr-speech.js', './speech-worker.js', './dsr-move.js'];
